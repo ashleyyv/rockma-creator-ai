@@ -1,0 +1,159 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
+
+/*
+  This is the new rule that fixes our layout.
+  It tells the <html>, <body>, and React's <div id="root">
+  to all be 100% of the screen height, which will
+  allow our centering classes in App.jsx to work.
+*/
+html, body, #root {
+  height: 100%;
+}
+
+/* Typography - Oswald for headings and UI elements */
+h1, h2, h3, h4, h5, h6, button, .heading-font {
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 0.025em;
+}
+
+/* ========================================
+   ANIMATIONS & TRANSITIONS
+   ======================================== */
+
+/* Fade-in animation for dynamic content */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+/* Skeleton loading animation */
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-skeleton {
+  animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Smooth transitions for interactive elements */
+button, input, textarea, select {
+  transition: all 0.2s ease;
+}
+
+/* ========================================
+   ACCESSIBILITY ENHANCEMENTS
+   ======================================== */
+
+/* High visibility focus indicators */
+*:focus-visible {
+  outline: 3px solid rgb(251, 191, 36);
+  outline-offset: 2px;
+}
+
+/* Skip to main content link (for keyboard navigation) */
+.skip-to-main {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1rem;
+  background-color: rgb(251, 191, 36);
+  color: rgb(17, 24, 39);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.skip-to-main:focus {
+  left: 50%;
+  transform: translateX(-50%);
+  top: 1rem;
+}
+
+/* Improve text readability */
+p, li, label {
+  line-height: 1.6;
+}
+
+/* ========================================
+   MICRO-INTERACTIONS
+   ======================================== */
+
+/* Smooth hover scale effect for buttons */
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+button:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* Card hover effect - luxurious gold glow */
+article:hover,
+.card-hover:hover {
+  box-shadow: 0 8px 24px rgba(251, 191, 36, 0.15);
+  border-color: rgba(251, 191, 36, 0.6);
+  transition: all 0.2s ease;
+}
+
+/* ========================================
+   LOADING STATES
+   ======================================== */
+
+/* Skeleton screen base styles */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgb(24, 24, 27) 25%,
+    rgb(39, 39, 42) 50%,
+    rgb(24, 24, 27) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+
+/* ========================================
+   MOBILE OPTIMIZATIONS
+   ======================================== */
+
+@media (max-width: 768px) {
+  /* Increase touch target sizes for mobile */
+  button, select, textarea {
+    min-height: 44px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  /* Better spacing on mobile */
+  .p-6 {
+    padding: 1rem;
+  }
+}
+
+/* ========================================
+   REDUCED MOTION PREFERENCE
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
