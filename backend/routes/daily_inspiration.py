@@ -21,11 +21,32 @@ def get_random_product():
 def generate_ideas():
     """
     Generate 3-5 daily inspiration content ideas
-    Returns: { ideas: [{ hook, script, hashtags }] }
+    Accepts optional 'product' parameter in request body
+    Returns: { ideas: [{ hook, script, hashtags }], product: string }
     """
     try:
-        # Select a random product from inventory
-        selected_product = get_random_product()
+        # Get product from request body (optional)
+        data = request.get_json() or {}
+        requested_product = data.get('product', None)
+        
+        # Get all available products for validation
+        all_products = []
+        for category, items in PRODUCT_INVENTORY.items():
+            all_products.extend(items)
+        
+        # Validate and select product
+        if requested_product:
+            # If product specified, validate it
+            if requested_product not in all_products:
+                return jsonify({
+                    'success': False,
+                    'message': f'Invalid product. Please select from available products.',
+                    'available_products': all_products
+                }), 400
+            selected_product = requested_product
+        else:
+            # If no product specified, select random
+            selected_product = get_random_product()
         
         # Build the prompt for generating ideas
         user_prompt = f"""Generate 3-5 unique content ideas for social media (TikTok, Instagram, Facebook) about this specific RockMa product: {selected_product}

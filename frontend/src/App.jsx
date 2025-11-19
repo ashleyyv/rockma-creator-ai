@@ -51,6 +51,28 @@ const PageDailyInspiration = () => {
   const [error, setError] = useState(null);
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [product, setProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState('');
+
+  // Product inventory for dropdown (matches backend)
+  const productInventory = {
+    'Body Butters': [
+      'RockMa Better Body Butter - Vanilla Cream',
+      'RockMa Better Body Butter - Choco Love',
+      'RockMa Better Body Butter - Cherry Kiss',
+      'RockMa Better Body Butter - Coco Beach',
+      'RockMa Better Body Butter - Orange Crush',
+      'RockMa Better Body Butter - Almondina',
+      'RockMa Better Body Butter - Berry Patch'
+    ],
+    'Lips': [
+      'RockMa Lips Organics - Fab 5 Flavor Boxes: Happy',
+      'RockMa Lips Organics - Fab 5 Flavor Boxes: Dreamy',
+      'RockMa Lips Organics - Fab 5 Flavor Boxes: Cozy',
+      'RockMa Lips Organics - Fab 5 Flavor Boxes: Sunny'
+    ],
+    'Apparel': ['RockMa Aesthetic Apparel'],
+    'Accents': ['RockMa Beautiful Accents']
+  };
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -60,7 +82,7 @@ const PageDailyInspiration = () => {
     setCopiedIndex(null);
 
     try {
-      const response = await api.generateDailyInspiration();
+      const response = await api.generateDailyInspiration(selectedProduct || null);
       if (response.success && response.ideas) {
         setIdeas(response.ideas);
         setProduct(response.product || null);
@@ -90,6 +112,31 @@ const PageDailyInspiration = () => {
         <p className="text-amber-100 text-sm">
           Get 3-5 unique content ideas with hooks, scripts, and hashtags for your RockMa products.
         </p>
+      </div>
+
+      {/* Product Selection Dropdown */}
+      <div className="mb-4">
+        <label htmlFor="product-select" className="block text-sm font-medium text-amber-100 mb-2">
+          Choose a Product (optional)
+        </label>
+        <select
+          id="product-select"
+          value={selectedProduct}
+          onChange={(e) => setSelectedProduct(e.target.value)}
+          disabled={loading}
+          className="w-full p-3 bg-zinc-900 border border-amber-900/40 rounded-lg text-amber-50 focus:outline-none focus:ring-4 focus:ring-amber-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <option value="">✨ Surprise Me (Random Product)</option>
+          {Object.entries(productInventory).map(([category, products]) => (
+            <optgroup key={category} label={category}>
+              {products.map((product) => (
+                <option key={product} value={product}>
+                  {product.replace('RockMa Better Body Butter - ', '').replace('RockMa Lips Organics - Fab 5 Flavor Boxes: ', '').replace('RockMa ', '')}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
       </div>
 
       <button

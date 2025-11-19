@@ -3,16 +3,22 @@ RockMa AI Persona - Brand Voice and System Prompts
 Based on PRD requirements for "Mama's Love" persona
 """
 
-# Product Inventory (from PRD)
+# Product Inventory (from PRD v3.1)
 PRODUCT_INVENTORY = {
     "body_butters": [
         "RockMa Better Body Butter - Vanilla Cream",
         "RockMa Better Body Butter - Choco Love",
-        "RockMa Better Body Butter - Cherry Kiss"
+        "RockMa Better Body Butter - Cherry Kiss",
+        "RockMa Better Body Butter - Coco Beach",
+        "RockMa Better Body Butter - Orange Crush",
+        "RockMa Better Body Butter - Almondina",
+        "RockMa Better Body Butter - Berry Patch"
     ],
     "lip_products": [
         "RockMa Lips Organics - Fab 5 Flavor Boxes: Happy",
-        "RockMa Lips Organics - Fab 5 Flavor Boxes: Dreamy"
+        "RockMa Lips Organics - Fab 5 Flavor Boxes: Dreamy",
+        "RockMa Lips Organics - Fab 5 Flavor Boxes: Cozy",
+        "RockMa Lips Organics - Fab 5 Flavor Boxes: Sunny"
     ],
     "apparel": [
         "RockMa Aesthetic Apparel"

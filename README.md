@@ -157,10 +157,24 @@ The AI persona is pre-configured with RockMa's "Mama's Love" brand voice:
 ## Product Inventory
 
 The AI is pre-loaded with RockMa's product inventory:
-- RockMa Better Body Butter (Vanilla Cream, Choco Love, Cherry Kiss)
-- RockMa Lips Organics (Fab 5 Flavor Boxes)
+
+**Body Butters (7 flavors):**
+- Vanilla Cream, Choco Love, Cherry Kiss, Coco Beach, Orange Crush, Almondina, Berry Patch
+
+**Lips Organics - Fab 5 Flavor Boxes (4 flavors):**
+- Happy, Dreamy, Cozy, Sunny
+
+**Other Products:**
 - RockMa Aesthetic Apparel
 - RockMa Beautiful Accents
+
+**Total: 13 products** available for content generation.
+
+Users can select a specific product or let the AI randomly choose one for Daily Inspiration content ideas.
+
+## Planned Features
+
+**Dashboard/Command Center** - A centralized hub with quick actions, creation streak tracking, product spotlight, and recent drafts history. Planned for future implementation as outlined in PRD v3.1.
 
 ## Development Notes
 

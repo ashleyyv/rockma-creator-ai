@@ -67,12 +67,13 @@ export const api = {
 
   /**
    * Generate daily inspiration content
-   * @returns {Promise<{ideas: Array<{hook: string, script: string, hashtags: string}>}>}
+   * @param {string|null} selectedProduct - Optional product to generate ideas for (null for random)
+   * @returns {Promise<{ideas: Array<{hook: string, script: string, hashtags: string}>, product: string}>}
    */
-  async generateDailyInspiration() {
+  async generateDailyInspiration(selectedProduct = null) {
     return apiRequest(API_ENDPOINTS.DAILY_INSPIRATION, {
       method: 'POST',
-      body: JSON.stringify({}),
+      body: JSON.stringify({ product: selectedProduct }),
     });
   },
 
