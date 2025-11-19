@@ -43,17 +43,36 @@ A 3-feature AI-powered content creation suite for RockMa, a mom & pop CPG busine
    pip install -r requirements.txt
    ```
 
-4. Create a `.env` file in the backend directory:
+4. **Configure your API key:**
+   
+   Copy the `.env.example` file to create your `.env` file:
+   ```bash
+   # On Windows (PowerShell):
+   copy .env.example .env
+   
+   # On Mac/Linux:
+   cp .env.example .env
+   ```
+   
+   Then open `.env` in a text editor and add your OpenAI API key:
    ```env
-   OPENAI_API_KEY=your_openai_api_key_here
+   OPENAI_API_KEY=sk-proj-your-actual-key-here
    FLASK_ENV=development
    ```
+   
+   **📖 For detailed setup instructions, see:** [`backend/SETUP_INSTRUCTIONS.md`](backend/SETUP_INSTRUCTIONS.md)
+   
+   **🔑 Get your API key from:** https://platform.openai.com/api-keys
 
 5. Run the Flask server:
    ```bash
    python app.py
    ```
    The server will run on `http://localhost:5000`
+   
+6. **Test the backend** by visiting: http://localhost:5000/api/health
+   
+   You should see: `{"status": "healthy", "service": "RockMa Creator AI API"}`
 
 ### Frontend Setup
 
@@ -83,27 +102,31 @@ A 3-feature AI-powered content creation suite for RockMa, a mom & pop CPG busine
 ```
 rockma-creator-ai/
 ├── backend/
-│   ├── app.py                 # Main Flask application
-│   ├── config.py              # Configuration management
-│   ├── ai_persona.py          # RockMa brand voice and system prompts
-│   ├── utils.py               # Shared AI utility functions
-│   ├── request_validators.py  # Request validation helpers
-│   ├── requirements.txt       # Python dependencies
+│   ├── app.py                    # Main Flask application
+│   ├── config.py                 # Configuration management
+│   ├── ai_persona.py             # RockMa brand voice and system prompts
+│   ├── utils.py                  # Shared AI utility functions
+│   ├── request_validators.py     # Request validation helpers
+│   ├── requirements.txt          # Python dependencies
+│   ├── .env.example              # Environment variables template
+│   ├── .env                      # Your API keys (not in Git)
+│   ├── SETUP_INSTRUCTIONS.md     # Detailed setup guide
 │   └── routes/
 │       ├── daily_inspiration.py
 │       ├── adapt_competitor.py
 │       └── platform_translator.py
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx            # Main React component
-│   │   ├── main.jsx           # React entry point
+│   │   ├── App.jsx               # Main React component
+│   │   ├── main.jsx              # React entry point
 │   │   ├── services/
-│   │   │   └── api.js          # API client
+│   │   │   └── api.js             # API client
 │   │   └── utils/
-│   │       ├── constants.js   # API endpoints
-│   │       └── stateHelpers.js # Utility functions
+│   │       ├── constants.js      # API endpoints
+│   │       └── stateHelpers.js   # Utility functions
 │   └── package.json
-└── PRD.md                     # Product Requirements Document
+├── .gitignore                    # Git ignore rules (protects .env)
+└── PRD.md                        # Product Requirements Document
 ```
 
 ## API Endpoints
