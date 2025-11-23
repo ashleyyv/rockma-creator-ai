@@ -5,6 +5,7 @@ Generates 3-5 unique content ideas with Hook, Script, Hashtags
 from flask import Blueprint, request, jsonify
 from utils import generate_ai_content
 from ai_persona import PRODUCT_INVENTORY
+from backend.middleware.auth_middleware import require_auth
 import json
 import random
 
@@ -18,6 +19,7 @@ def get_random_product():
     return random.choice(all_products) if all_products else "RockMa product"
 
 @daily_inspiration_bp.route('/generate', methods=['POST'])
+@require_auth
 def generate_ideas():
     """
     Generate 3-5 daily inspiration content ideas

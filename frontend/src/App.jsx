@@ -10,6 +10,8 @@ import {
   isFirstVisit,
   markVisited 
 } from './utils/localStorage.js';
+import AccessGate from './components/AccessGate.jsx';
+import { isAuthenticated, clearAccessCode } from './utils/auth.js';
 
 // ========================================
 // SKELETON LOADING COMPONENTS
@@ -819,6 +821,10 @@ const PagePlatformTranslator = ({ preSelectedPlatform = '', preSelectedAudience 
 
 
 function App() {
+  // Authentication state
+  const [authenticated, setAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
   // 'activePage' is a variable that remembers which page we're on.
   // It starts as 'dashboard' by default.
   const [activePage, setActivePage] = useState('dashboard');
@@ -832,6 +838,12 @@ function App() {
   const activeTabClass = "flex-1 py-3 px-4 rounded-lg font-bold text-sm transition-all duration-200 bg-amber-400 text-black shadow-lg shadow-amber-400/50 border-2 border-amber-400";
   const inactiveTabClass = "flex-1 py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 bg-zinc-800 text-amber-100 hover:bg-zinc-700 border-2 border-amber-900/40 hover:border-amber-500/60 hover:shadow-md hover:shadow-amber-500/30";
   // ----------------------------------
+
+  // Check if user is already authenticated on mount
+  useEffect(() => {
+    setAuthenticated(isAuthenticated());
+    setCheckingAuth(false);
+  }, []);
 
   // First-visit detection: Show dashboard on first load
   useEffect(() => {
@@ -855,6 +867,27 @@ function App() {
     setPreSelectedProduct(product);
   };
 
+  // Handle logout
+  const handleLogout = () => {
+    clearAccessCode();
+    setAuthenticated(false);
+  };
+
+  // Show loading state while checking authentication
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show login screen if not authenticated
+  if (!authenticated) {
+    return <AccessGate onAuthenticated={() => setAuthenticated(true)} />;
+  }
+
+  // Show main app if authenticated
   return (
     <div className="bg-black min-h-screen flex items-center justify-center p-4">
       {/* Skip to main content link for keyboard navigation */}
@@ -866,7 +899,16 @@ function App() {
       <div className="w-full max-w-3xl bg-zinc-900 rounded-xl shadow-2xl shadow-amber-500/10 border border-amber-900/40 overflow-hidden">
         
         {/* Header Section */}
-        <div className="text-center p-6 bg-zinc-900 border-b border-amber-900/40">
+        <div className="relative text-center p-6 bg-zinc-900 border-b border-amber-900/40">
+          {/* Logout Button - Top Right */}
+          <button
+            onClick={handleLogout}
+            className="absolute top-4 right-4 text-sm text-gray-400 hover:text-white transition-colors px-3 py-1 rounded hover:bg-gray-800"
+            aria-label="Logout"
+          >
+            Logout
+          </button>
+          
           {/* RockMa Logo */}
           <div className="mb-4 flex justify-center">
             <img 

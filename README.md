@@ -16,6 +16,29 @@ Your landing page featuring:
 2. **Adapt a Competitor** - Rewrite competitor content in RockMa's brand voice
 3. **Platform Translator** - Repurpose content for different platforms (TikTok, Instagram, Facebook Ad, Email, YouTube) and audiences
 
+## 🔐 Security Features
+
+### Access Code Protection
+The app is protected by a single shared access code to prevent unauthorized access and protect your OpenAI API credits.
+
+**How it works:**
+- **First-time setup:** Set your access code in `backend/.env` (default: `ROCKMA-LOVE-2025`)
+- **Login:** Enter the code once on each device - it's saved in your browser
+- **Logout:** Click the logout button in the top-right to clear the code
+- **Backend validation:** Every API request is validated on the server to protect your OpenAI credits
+
+**Changing the access code:**
+1. Update `ACCESS_CODE` in `backend/.env`
+2. Restart the backend server
+3. All users will need to re-enter the new code
+
+**Security notes:**
+- ✅ The code is validated on the backend with every API request
+- ✅ Unauthorized users cannot access AI features even if they bypass the frontend
+- ✅ The code is stored in localStorage (device-specific)
+- ✅ No admin panel needed - manage via environment variable
+- ⚠️ Never commit `.env` file to Git (it's protected by `.gitignore`)
+
 ## Tech Stack
 
 - **Frontend**: React 19 + Vite + Tailwind CSS v4
@@ -51,7 +74,7 @@ Your landing page featuring:
    pip install -r requirements.txt
    ```
 
-4. **Configure your API key:**
+4. **Configure your API key and access code:**
    
    Copy the `.env.example` file to create your `.env` file:
    ```bash
@@ -62,9 +85,10 @@ Your landing page featuring:
    cp .env.example .env
    ```
    
-   Then open `.env` in a text editor and add your OpenAI API key:
+   Then open `.env` in a text editor and configure:
    ```env
    OPENAI_API_KEY=sk-proj-your-actual-key-here
+   ACCESS_CODE=ROCKMA-LOVE-2025
    FLASK_ENV=development
    ```
    

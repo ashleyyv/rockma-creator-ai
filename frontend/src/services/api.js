@@ -2,9 +2,10 @@
  * API client for making requests to the backend
  */
 import { API_ENDPOINTS } from '../utils/constants.js';
+import { getAuthHeader, clearAccessCode } from '../utils/auth.js';
 
 /**
- * Generic API request function with error handling
+ * Generic API request function with error handling and authentication
  * @param {string} url - The API endpoint URL
  * @param {object} options - Fetch options (method, body, headers, etc.)
  * @returns {Promise<object>} - Parsed JSON response
@@ -13,6 +14,7 @@ async function apiRequest(url, options = {}) {
   const defaultOptions = {
     headers: {
       'Content-Type': 'application/json',
+      ...getAuthHeader(), // Add authentication header to every request
     },
   };
 
@@ -27,6 +29,13 @@ async function apiRequest(url, options = {}) {
 
   try {
     const response = await fetch(url, mergedOptions);
+
+    // Handle 401/403 - invalid access code
+    if (response.status === 401 || response.status === 403) {
+      clearAccessCode(); // Clear invalid code
+      window.location.reload(); // Force return to login
+      throw new Error('Session expired. Please log in again.');
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({

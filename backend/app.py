@@ -37,11 +37,16 @@ def health_check():
     })
 
 # Import route modules
+from routes.auth import auth_bp
 from routes.daily_inspiration import daily_inspiration_bp
 from routes.adapt_competitor import adapt_competitor_bp
 from routes.platform_translator import platform_translator_bp
 
 # Register blueprints
+# Auth blueprint (no authentication required for validation endpoint)
+app.register_blueprint(auth_bp, url_prefix='/api/auth')
+
+# Protected blueprints (authentication required via @require_auth decorator)
 app.register_blueprint(daily_inspiration_bp, url_prefix='/api/daily-inspiration')
 app.register_blueprint(adapt_competitor_bp, url_prefix='/api/adapt-competitor')
 app.register_blueprint(platform_translator_bp, url_prefix='/api/platform-translator')

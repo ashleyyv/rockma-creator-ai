@@ -5,6 +5,7 @@ Translates content for specific platforms and audiences
 from flask import Blueprint, request, jsonify
 from utils import generate_ai_content
 from request_validators import validate_json_request
+from backend.middleware.auth_middleware import require_auth
 
 platform_translator_bp = Blueprint('platform_translator', __name__)
 
@@ -62,6 +63,7 @@ AUDIENCE_GUIDELINES = {
 }
 
 @platform_translator_bp.route('/translate', methods=['POST'])
+@require_auth
 def translate_content():
     """
     Translate content for specific platform and audience

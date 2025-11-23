@@ -17,10 +17,15 @@ class Config:
     # API Configuration
     API_BASE_URL = os.getenv('API_BASE_URL', 'http://localhost:5000')
     
+    # Authentication Configuration
+    ACCESS_CODE = os.getenv('ACCESS_CODE', '')
+    
     @staticmethod
     def validate():
         """Validate that required configuration is present"""
         if not Config.OPENAI_API_KEY:
             raise ValueError("OPENAI_API_KEY environment variable is not set")
+        if not Config.ACCESS_CODE:
+            raise ValueError("ACCESS_CODE environment variable is not set")
         return True
 
