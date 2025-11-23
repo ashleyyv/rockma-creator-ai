@@ -5,7 +5,17 @@ from config import Config
 # Initialize the Flask app
 app = Flask(__name__)
 # Set up CORS to allow our React app (from a different 'origin') to make requests
-CORS(app)
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "http://localhost:5173",  # Local development
+            "https://*.vercel.app",   # Vercel preview deployments
+            "https://rockma-creator-ai.vercel.app"  # Production (adjust domain)
+        ],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 # Error handling middleware
 @app.errorhandler(400)

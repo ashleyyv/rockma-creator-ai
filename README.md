@@ -178,6 +178,26 @@ rockma-creator-ai/
   - Body: `{ sourceText: string, platform: string, audience: string }`
   - Returns: `{ success: true, translatedContent: string, platform: string, audience: string }`
 
+## 🚀 Deployment
+
+This app is designed for production deployment:
+- **Backend**: Render (Python/Flask)
+- **Frontend**: Vercel (React/Vite)
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+
+**Architecture:**
+- Backend API: Python Flask server with OpenAI integration
+- Frontend: React + Vite with Tailwind CSS
+- Authentication: Single shared access code system
+- Storage: localStorage for persistence (streak, drafts, favorites)
+
+**Live URLs (after deployment):**
+- Frontend: `https://your-app.vercel.app`
+- Backend API: `https://your-api.onrender.com`
+
+---
+
 ## Brand Voice
 
 The AI persona is pre-configured with RockMa's "Mama's Love" brand voice:
