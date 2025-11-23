@@ -1,10 +1,18 @@
 # RockMa Creator AI
 
-A 3-feature AI-powered content creation suite for RockMa, a mom & pop CPG business. This tool helps generate consistent, on-brand content using a custom-tuned "Mama's Love" AI persona.
+An AI-powered content creation suite for RockMa, a mom & pop CPG business. This tool helps generate consistent, on-brand content using a custom-tuned "Mama's Love" AI persona.
 
 ## Features
 
-1. **Daily Inspiration** - Generate 3-5 unique content ideas with hooks, scripts, and hashtags for RockMa products
+### 🏠 Dashboard (Command Center)
+Your landing page featuring:
+- **Creation Streak** - Track consecutive days of content creation (gamification)
+- **Product Spotlight** - Daily product recommendation to eliminate decision fatigue
+- **Quick Actions** - One-click shortcuts to common workflows
+- **Recent Drafts** - Safety net showing your last 3 generated pieces of content
+
+### Content Creation Tools
+1. **Daily Inspiration** - Generate 3-5 unique content ideas with hooks, scripts, and hashtags for RockMa products (now with product selector for all 13 products)
 2. **Adapt a Competitor** - Rewrite competitor content in RockMa's brand voice
 3. **Platform Translator** - Repurpose content for different platforms (TikTok, Instagram, Facebook Ad, Email, YouTube) and audiences
 

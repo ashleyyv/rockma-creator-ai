@@ -1,6 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from './services/api.js';
 import { copyToClipboard, formatErrorMessage } from './utils/stateHelpers.js';
+import { 
+  calculateStreak, 
+  getStreak,
+  getProductOfDay, 
+  saveRecentDraft, 
+  getRecentDrafts,
+  isFirstVisit,
+  markVisited 
+} from './utils/localStorage.js';
 
 // ========================================
 // SKELETON LOADING COMPONENTS
@@ -44,14 +53,217 @@ const EmptyState = ({ icon, title, description }) => (
   </div>
 );
 
+// ========================================
+// DASHBOARD COMPONENT
+// ========================================
+
+// Dashboard - The Command Center
+const PageDashboard = ({ onNavigate, onProductSelect }) => {
+  const [streak, setStreak] = useState(0);
+  const [productOfDay, setProductOfDay] = useState('');
+  const [recentDrafts, setRecentDrafts] = useState([]);
+
+  useEffect(() => {
+    // Calculate and update streak
+    const currentStreak = calculateStreak();
+    setStreak(currentStreak);
+
+    // Get product of the day
+    const product = getProductOfDay();
+    setProductOfDay(product);
+
+    // Load recent drafts
+    const drafts = getRecentDrafts();
+    setRecentDrafts(drafts);
+  }, []);
+
+  const handleProductSpotlight = () => {
+    // Pre-select the product and navigate to Daily Inspiration
+    onProductSelect(productOfDay);
+    onNavigate('inspiration');
+  };
+
+  const handleQuickAction = (action) => {
+    switch (action) {
+      case 'tiktok':
+        // Navigate to Daily Inspiration with random product
+        onProductSelect('');
+        onNavigate('inspiration');
+        break;
+      case 'email':
+        // Navigate to Platform Translator with Email and Core pre-selected
+        onNavigate('translator', { platform: 'Email', audience: 'Core Moms 25-50' });
+        break;
+      case 'competitor':
+        // Navigate to Adapt Competitor
+        onNavigate('adapt');
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleCopyDraft = async (content) => {
+    await copyToClipboard(content);
+  };
+
+  return (
+    <div className="text-amber-50">
+      {/* Welcome Header */}
+      <div className="mb-6">
+        <h2 className="text-3xl font-bold text-amber-400 mb-2">Welcome Back! 👋</h2>
+        <p className="text-amber-100 text-sm">
+          Your Command Center for consistent, on-brand content creation.
+        </p>
+      </div>
+
+      {/* Bento Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        
+        {/* Section 1: Creation Streak */}
+        <div className="p-6 bg-gradient-to-br from-amber-900/40 to-zinc-900 rounded-lg border border-amber-600/50 animate-pulse-gold">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-amber-300">Creation Streak</h3>
+            <span className="text-4xl">🔥</span>
+          </div>
+          <div className="text-center">
+            <div className="text-6xl font-bold text-amber-400 mb-2 animate-count-up">
+              {streak}
+            </div>
+            <p className="text-amber-100 text-sm font-medium">
+              {streak === 1 ? 'Day' : 'Days'} in a Row
+            </p>
+            <p className="text-amber-200/70 text-xs mt-2">
+              {streak >= 7 
+                ? "Amazing! You're crushing your consistency goals! 🎉" 
+                : "Keep the momentum going! Consistency builds brands."}
+            </p>
+          </div>
+        </div>
+
+        {/* Section 2: Product Spotlight */}
+        <div className="p-6 bg-zinc-900 rounded-lg border border-amber-900/40 hover:border-amber-500/60 transition-all duration-200">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-amber-300">Today's Spotlight</h3>
+            <span className="text-4xl">✨</span>
+          </div>
+          <div className="mb-4">
+            <p className="text-amber-100 text-sm mb-2">Feature this product today:</p>
+            <p className="text-amber-400 font-bold text-lg leading-tight">
+              {productOfDay.replace('RockMa Better Body Butter - ', '').replace('RockMa Lips Organics - Fab 5 Flavor Boxes: ', '').replace('RockMa ', '')}
+            </p>
+          </div>
+          <button
+            onClick={handleProductSpotlight}
+            className="w-full py-3 px-4 bg-amber-400 text-gray-900 rounded-lg font-semibold text-sm hover:bg-amber-500 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-amber-400/50"
+            aria-label={`Generate content ideas for ${productOfDay}`}
+          >
+            ✨ Generate Ideas for This
+          </button>
+        </div>
+      </div>
+
+      {/* Section 3: Quick Actions */}
+      <div className="p-6 bg-zinc-900 rounded-lg border border-amber-900/40 mb-4">
+        <h3 className="text-lg font-semibold text-amber-300 mb-4">Quick Actions ⚡</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          
+          <button
+            onClick={() => handleQuickAction('tiktok')}
+            className="p-4 bg-zinc-800 rounded-lg border border-amber-900/30 hover:border-amber-500/60 hover:bg-zinc-700 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-amber-400/50 group"
+            aria-label="Draft new TikTok content"
+          >
+            <div className="text-3xl mb-2">🎥</div>
+            <div className="text-amber-100 font-semibold text-sm mb-1">Draft New TikTok</div>
+            <div className="text-amber-200/60 text-xs">Generate fresh ideas</div>
+          </button>
+
+          <button
+            onClick={() => handleQuickAction('email')}
+            className="p-4 bg-zinc-800 rounded-lg border border-amber-900/30 hover:border-amber-500/60 hover:bg-zinc-700 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-amber-400/50 group"
+            aria-label="Write weekly email"
+          >
+            <div className="text-3xl mb-2">📧</div>
+            <div className="text-amber-100 font-semibold text-sm mb-1">Write Weekly Email</div>
+            <div className="text-amber-200/60 text-xs">For your core audience</div>
+          </button>
+
+          <button
+            onClick={() => handleQuickAction('competitor')}
+            className="p-4 bg-zinc-800 rounded-lg border border-amber-900/30 hover:border-amber-500/60 hover:bg-zinc-700 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-amber-400/50 group"
+            aria-label="Rewrite competitor post"
+          >
+            <div className="text-3xl mb-2">✍️</div>
+            <div className="text-amber-100 font-semibold text-sm mb-1">Rewrite Competitor</div>
+            <div className="text-amber-200/60 text-xs">Adapt in your voice</div>
+          </button>
+        </div>
+      </div>
+
+      {/* Section 4: Recent Drafts */}
+      <div className="p-6 bg-zinc-900 rounded-lg border border-amber-900/40">
+        <h3 className="text-lg font-semibold text-amber-300 mb-4">Recent Drafts 🕒</h3>
+        
+        {recentDrafts.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-amber-200/60 text-sm">No drafts yet. Generate some content to see it here!</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {recentDrafts.map((draft) => (
+              <article
+                key={draft.id}
+                className="p-4 bg-zinc-800 rounded-lg border border-amber-900/30 hover:border-amber-500/40 transition-all duration-200"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-2 py-1 bg-amber-900/40 text-amber-300 text-xs font-semibold rounded">
+                        {draft.type}
+                      </span>
+                      <time className="text-amber-200/50 text-xs">
+                        {new Date(draft.timestamp).toLocaleDateString()}
+                      </time>
+                    </div>
+                    <p className="text-amber-100 text-sm truncate">
+                      {draft.snippet}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleCopyDraft(draft.content)}
+                    className="flex-shrink-0 p-2 bg-zinc-700 hover:bg-zinc-600 text-amber-100 rounded transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+                    aria-label={`Copy ${draft.type} content`}
+                    title="Copy to clipboard"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Daily Inspiration Component
-const PageDailyInspiration = () => {
+const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
   const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [product, setProduct] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState('');
+
+  // Set selected product from Dashboard Product Spotlight
+  useEffect(() => {
+    if (preSelectedProduct) {
+      setSelectedProduct(preSelectedProduct);
+    }
+  }, [preSelectedProduct]);
 
   // Product inventory for dropdown (matches backend)
   const productInventory = {
@@ -86,6 +298,12 @@ const PageDailyInspiration = () => {
       if (response.success && response.ideas) {
         setIdeas(response.ideas);
         setProduct(response.product || null);
+        
+        // Save each idea to recent drafts
+        response.ideas.forEach((idea) => {
+          const content = `${idea.hook}\n\n${idea.script}\n\n${idea.hashtags}`;
+          saveRecentDraft('Daily Idea', content, { product: response.product });
+        });
       } else {
         setError(response.message || 'Failed to generate ideas');
       }
@@ -252,6 +470,9 @@ const PageAdaptACompetitor = () => {
       const response = await api.adaptCompetitor(competitorText);
       if (response.success && response.adaptedText) {
         setAdaptedText(response.adaptedText);
+        
+        // Save to recent drafts
+        saveRecentDraft('Adaptation', response.adaptedText);
       } else {
         setError(response.message || 'Failed to adapt content');
       }
@@ -385,7 +606,7 @@ const PageAdaptACompetitor = () => {
 };
 
 // Platform Translator Component
-const PagePlatformTranslator = () => {
+const PagePlatformTranslator = ({ preSelectedPlatform = '', preSelectedAudience = '' }) => {
   const [sourceText, setSourceText] = useState('');
   const [platform, setPlatform] = useState('TikTok');
   const [audience, setAudience] = useState('Core Moms 25-50');
@@ -396,6 +617,12 @@ const PagePlatformTranslator = () => {
 
   const platforms = ['TikTok', 'Instagram', 'Facebook Ad', 'Email', 'YouTube'];
   const audiences = ['Core Moms 25-50', 'Gen-Z', 'Wellness Enthusiasts', 'B2B'];
+
+  // Set pre-selected platform and audience from Dashboard Quick Actions
+  useEffect(() => {
+    if (preSelectedPlatform) setPlatform(preSelectedPlatform);
+    if (preSelectedAudience) setAudience(preSelectedAudience);
+  }, [preSelectedPlatform, preSelectedAudience]);
 
   const handleTranslate = async () => {
     if (!sourceText.trim()) {
@@ -412,6 +639,9 @@ const PagePlatformTranslator = () => {
       const response = await api.translatePlatform(sourceText, platform, audience);
       if (response.success && response.translatedContent) {
         setTranslatedContent(response.translatedContent);
+        
+        // Save to recent drafts
+        saveRecentDraft('Translation', response.translatedContent, { platform, audience });
       } else {
         setError(response.message || 'Failed to translate content');
       }
@@ -590,13 +820,40 @@ const PagePlatformTranslator = () => {
 
 function App() {
   // 'activePage' is a variable that remembers which page we're on.
-  // It starts as 'inspiration' by default.
-  const [activePage, setActivePage] = useState('inspiration');
+  // It starts as 'dashboard' by default.
+  const [activePage, setActivePage] = useState('dashboard');
+  
+  // State for pre-selected values from Dashboard Quick Actions
+  const [preSelectedProduct, setPreSelectedProduct] = useState('');
+  const [preSelectedPlatform, setPreSelectedPlatform] = useState('');
+  const [preSelectedAudience, setPreSelectedAudience] = useState('');
 
   // --- Style classes for our tabs ---
   const activeTabClass = "flex-1 py-3 px-4 rounded-lg font-bold text-sm transition-all duration-200 bg-amber-400 text-black shadow-lg shadow-amber-400/50 border-2 border-amber-400";
   const inactiveTabClass = "flex-1 py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 bg-zinc-800 text-amber-100 hover:bg-zinc-700 border-2 border-amber-900/40 hover:border-amber-500/60 hover:shadow-md hover:shadow-amber-500/30";
   // ----------------------------------
+
+  // First-visit detection: Show dashboard on first load
+  useEffect(() => {
+    if (isFirstVisit()) {
+      setActivePage('dashboard');
+      markVisited();
+    }
+  }, []);
+
+  // Navigation handler for Dashboard Quick Actions
+  const handleNavigateFromDashboard = (page, options = {}) => {
+    setActivePage(page);
+    
+    // Set pre-selected values if provided
+    if (options.platform) setPreSelectedPlatform(options.platform);
+    if (options.audience) setPreSelectedAudience(options.audience);
+  };
+
+  // Product selector handler for Dashboard Product Spotlight
+  const handleProductSelectFromDashboard = (product) => {
+    setPreSelectedProduct(product);
+  };
 
   return (
     <div className="bg-black min-h-screen flex items-center justify-center p-4">
@@ -624,7 +881,16 @@ function App() {
         </div>
 
         {/* Navigation Tabs */}
-        <nav className="flex gap-3 p-4 bg-black border-b border-amber-900/40" role="tablist" aria-label="Main features">
+        <nav className="flex gap-2 p-4 bg-black border-b border-amber-900/40 overflow-x-auto" role="tablist" aria-label="Main features">
+          <button 
+            role="tab"
+            aria-selected={activePage === 'dashboard'}
+            aria-controls="dashboard-panel"
+            className={activePage === 'dashboard' ? activeTabClass : inactiveTabClass}
+            onClick={() => setActivePage('dashboard')}
+          >
+            🏠 Dashboard
+          </button>
           <button 
             role="tab"
             aria-selected={activePage === 'inspiration'}
@@ -632,7 +898,7 @@ function App() {
             className={activePage === 'inspiration' ? activeTabClass : inactiveTabClass}
             onClick={() => setActivePage('inspiration')}
           >
-            1. Daily Inspiration
+            💡 Daily Inspiration
           </button>
           <button 
             role="tab"
@@ -641,7 +907,7 @@ function App() {
             className={activePage === 'adapt' ? activeTabClass : inactiveTabClass}
             onClick={() => setActivePage('adapt')}
           >
-            2. Adapt a Competitor
+            ✨ Adapt Competitor
           </button>
           <button 
             role="tab"
@@ -650,15 +916,23 @@ function App() {
             className={activePage === 'translator' ? activeTabClass : inactiveTabClass}
             onClick={() => setActivePage('translator')}
           >
-            3. Platform Translator
+            🔄 Translator
           </button>
         </nav>
 
-        {/* Main Content Area (this is where the 3 pages will swap) */}
+        {/* Main Content Area (this is where the 4 pages will swap) */}
         <main id="main-content" className="p-6 md:p-8" tabIndex="-1">
+          {activePage === 'dashboard' && (
+            <div id="dashboard-panel" role="tabpanel" aria-labelledby="Dashboard" className="animate-fade-in">
+              <PageDashboard 
+                onNavigate={handleNavigateFromDashboard}
+                onProductSelect={handleProductSelectFromDashboard}
+              />
+            </div>
+          )}
           {activePage === 'inspiration' && (
             <div id="inspiration-panel" role="tabpanel" aria-labelledby="Daily Inspiration" className="animate-fade-in">
-              <PageDailyInspiration />
+              <PageDailyInspiration preSelectedProduct={preSelectedProduct} />
             </div>
           )}
           {activePage === 'adapt' && (
@@ -668,7 +942,10 @@ function App() {
           )}
           {activePage === 'translator' && (
             <div id="translator-panel" role="tabpanel" aria-labelledby="Platform Translator" className="animate-fade-in">
-              <PagePlatformTranslator />
+              <PagePlatformTranslator 
+                preSelectedPlatform={preSelectedPlatform}
+                preSelectedAudience={preSelectedAudience}
+              />
             </div>
           )}
         </main>
