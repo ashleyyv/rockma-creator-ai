@@ -5,7 +5,7 @@ Rewrites competitor content in RockMa brand voice
 from flask import Blueprint, request, jsonify
 from utils import generate_ai_content
 from request_validators import validate_json_request
-from backend.middleware.auth_middleware import require_auth
+from middleware.auth_middleware import require_auth
 
 adapt_competitor_bp = Blueprint('adapt_competitor', __name__)
 

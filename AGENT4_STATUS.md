@@ -331,6 +331,172 @@ If additional polish is desired, consider:
 
 ---
 
+## NEXT TASKS: Dashboard Quick Actions Replacement
+
+Replace the existing placeholder Quick Action buttons with three new functional features:
+
+---
+
+### Feature 1: 📌 Pin a Competitor Link (Research Tool)
+
+**Purpose:** Separate the "scrolling/research" phase from the "writing" phase. Save competitor content for later adaptation.
+
+**Complexity:** Low
+
+**Files to Modify:**
+- `frontend/src/App.jsx` (Dashboard component, Adapt Competitor component)
+- `frontend/src/utils/localStorage.js` (if creating new utility functions)
+
+**localStorage:**
+- Array key: `savedCompetitorClips`
+- Structure: `[{ id, text, timestamp, snippet }]`
+
+**UI Components:**
+- Dashboard: "Pin Competitor" button
+- Modal: Single input field for link/text, Save button
+- Adapt Competitor page: Dropdown selector "Load Pinned Clip"
+
+**Implementation Details:**
+- Pure frontend state management
+- localStorage read/write operations
+- Modal component with form validation
+- Dropdown selector that auto-fills the main textarea
+- Option to delete individual pinned clips
+
+**User Flow:**
+1. User clicks "Pin Competitor" button on Dashboard
+2. Modal opens with input field
+3. User pastes link or text snippet
+4. Click "Save" → stores to localStorage
+5. Later: Go to "Adapt Competitor" tab
+6. Select from "Load Pinned Clip" dropdown
+7. Content auto-fills the textarea
+
+---
+
+### Feature 2: 🎤 Brain Dump / Voice Note (Ideation Tool)
+
+**Purpose:** Capture fleeting ideas before they disappear. Quick ideation without structure.
+
+**Complexity:** Low to Medium
+
+**Files to Modify:**
+- `frontend/src/App.jsx` (Dashboard component)
+- `frontend/src/utils/localStorage.js` (integrate with Recent Drafts)
+
+**localStorage:**
+- Uses existing `recentDrafts` system
+- Type: `"Raw Idea"`
+
+**UI Components:**
+- Dashboard: "Brain Dump" button
+- Modal: Large textarea titled "What's on your mind?"
+- Optional: Voice input button (Web Speech API)
+- Save button
+
+**Implementation Details:**
+- **MVP Version:** Large textarea for typing raw thoughts
+- **Pro Version:** Add Web Speech API for voice dictation (HTML5 standard)
+- Save to Recent Drafts with type "Raw Idea"
+- Integration with existing `saveRecentDraft()` function
+- Copy button on draft cards to paste into other tools
+
+**User Flow:**
+1. User clicks "Brain Dump" button on Dashboard
+2. Modal opens with large textarea
+3. User types (or dictates) raw thoughts
+4. Click "Save" → adds to Recent Drafts
+5. Later: Click "Copy" on the draft card
+6. Paste into Daily Inspiration or Translator for refinement
+
+**Web Speech API Notes:**
+- Browser support: Chrome, Safari (standard HTML5)
+- Simple implementation: `webkitSpeechRecognition` or `SpeechRecognition`
+- Fallback: Text-only version for unsupported browsers
+- Optional feature: Can be added in Phase 2
+
+---
+
+### Feature 3: ⭐ Remix a Favorite (Asset Library)
+
+**Purpose:** Turn "one-hit wonders" into "evergreen assets." Save and reuse successful scripts.
+
+**Complexity:** Low
+
+**Files to Modify:**
+- `frontend/src/App.jsx` (all feature pages: Daily Inspiration, Adapt Competitor, Platform Translator)
+- `frontend/src/utils/localStorage.js` (new favorites functions)
+
+**localStorage:**
+- Array key: `favorites`
+- Structure: `[{ id, content, type, timestamp, platform?, audience? }]`
+
+**UI Components:**
+- Star icon: Add to every output card (all three features)
+- Dashboard: "Remix Favorite" button
+- Modal: List of starred/favorited scripts
+- Click handler: Navigate to Platform Translator with pre-filled content
+
+**Implementation Details:**
+- Reusable Star button component
+- localStorage: Save to `favorites` array
+- Modal displays list of favorited scripts with metadata
+- Click on favorite → Navigate to Platform Translator
+- Pre-fill the translator's input with selected favorite
+- Option to delete favorites
+
+**User Flow:**
+1. User generates content (Daily Inspiration, Adapt, or Translate)
+2. Clicks Star icon on a successful output
+3. Content saves to `favorites` array
+4. Later: Click "Remix Favorite" on Dashboard
+5. Modal shows list of starred scripts
+6. User clicks one
+7. App navigates to Platform Translator tab
+8. Content is pre-filled in the source text field
+9. User selects new platform/audience and generates variation
+
+**Star Icon Locations:**
+- Daily Inspiration: On each idea card
+- Adapt Competitor: On the adapted text output
+- Platform Translator: On the translated content output
+
+---
+
+## IMPLEMENTATION NOTES
+
+**Shared Patterns:**
+- All three features use localStorage for persistence
+- All use modal components (similar UI pattern)
+- All integrate with existing features (no backend changes)
+- All follow existing accessibility patterns (ARIA, keyboard nav)
+
+**localStorage Structure:**
+```javascript
+// savedCompetitorClips
+[{ id: '123', text: 'competitor content...', timestamp: '2025-11-23', snippet: 'first 50 chars...' }]
+
+// favorites  
+[{ id: '456', content: 'script text...', type: 'Daily Idea', timestamp: '2025-11-23', platform: 'TikTok', audience: 'Gen-Z' }]
+
+// recentDrafts (existing - add new type)
+[{ id: '789', type: 'Raw Idea', content: 'brain dump text...', timestamp: '2025-11-23', snippet: 'first 50 chars...' }]
+```
+
+**Modal Component Pattern:**
+- Reusable modal wrapper with consistent styling
+- Dark overlay with backdrop blur
+- Centered card with amber accent
+- Close button (X) and ESC key support
+- Focus trap for accessibility
+
+**State Management:**
+- Use React useState for modal visibility
+- Use useEffect to load from localStorage on mount
+- Create utility functions in localStorage.js for DRY code
+
+---
+
 **Status:** ✅ Core tasks completed successfully
 **Linter Errors:** 0
 **Accessibility Score:** Target 95+ (pending Lighthouse audit)

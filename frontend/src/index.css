@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
 
 /*
   This is the new rule that fixes our layout.
@@ -15,6 +16,13 @@ html, body, #root {
 h1, h2, h3, h4, h5, h6, button, .heading-font {
   font-family: 'Oswald', sans-serif;
   letter-spacing: 0.025em;
+}
+
+/* AccessGate Title - Playfair Display */
+.access-gate-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 800;
+  letter-spacing: -0.02em; /* Tighter tracking for elegance */
 }
 
 /* ========================================
@@ -84,6 +92,230 @@ h1, h2, h3, h4, h5, h6, button, .heading-font {
 /* Smooth transitions for interactive elements */
 button, input, textarea, select {
   transition: all 0.2s ease;
+}
+
+/* ========================================
+   ACCESS GATE ANIMATIONS & LUXURY STYLES
+   ======================================== */
+
+/* Fade-in animation for entire login screen */
+@keyframes access-gate-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.access-gate-fade-in {
+  animation: access-gate-entrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Shake animation for invalid code errors */
+@keyframes access-gate-shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+  20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+
+.access-gate-shake {
+  animation: access-gate-shake 0.65s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+/* Loading spinner animation */
+@keyframes access-gate-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.access-gate-spinner {
+  animation: access-gate-spin 1s linear infinite;
+}
+
+/* Floating background orbs for luxury aesthetic */
+@keyframes access-gate-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -30px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
+.access-gate-bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.access-gate-bg-orb-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.4) 0%, transparent 70%);
+  top: -200px;
+  right: -100px;
+  animation: access-gate-float 20s ease-in-out infinite;
+}
+
+.access-gate-bg-orb-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(234, 179, 8, 0.3) 0%, transparent 70%);
+  bottom: -150px;
+  left: -100px;
+  animation: access-gate-float 25s ease-in-out infinite reverse;
+}
+
+/* Logo glow effect */
+@keyframes access-gate-logo-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 60px rgba(251, 191, 36, 0.5))
+            drop-shadow(0 0 30px rgba(251, 191, 36, 0.7));
+    text-shadow: 0 0 80px rgba(251, 191, 36, 0.4);
+  }
+  50% {
+    filter: drop-shadow(0 0 120px rgba(251, 191, 36, 0.8))
+            drop-shadow(0 0 60px rgba(251, 191, 36, 0.9));
+    text-shadow: 0 0 140px rgba(251, 191, 36, 0.6);
+  }
+}
+
+.access-gate-logo-glow {
+  animation: access-gate-logo-pulse 4s ease-in-out infinite;
+}
+
+/* Card luxury glow effect */
+.access-gate-card {
+  box-shadow: 
+    0 0 40px rgba(0, 0, 0, 0.3),
+    0 0 60px rgba(251, 191, 36, 0.15),
+    0 0 100px rgba(251, 191, 36, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.access-gate-card:hover {
+  box-shadow: 
+    0 0 60px rgba(0, 0, 0, 0.4),
+    0 0 100px rgba(251, 191, 36, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+/* Card pulsing glow animation */
+@keyframes access-gate-card-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 40px rgba(0, 0, 0, 0.3),
+      0 0 60px rgba(251, 191, 36, 0.15),
+      0 0 100px rgba(251, 191, 36, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  50% {
+    box-shadow: 
+      0 0 50px rgba(0, 0, 0, 0.35),
+      0 0 90px rgba(251, 191, 36, 0.25),
+      0 0 140px rgba(251, 191, 36, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+}
+
+.access-gate-card-glow {
+  animation: access-gate-card-pulse 4s ease-in-out infinite;
+}
+
+/* Input field luxury styling */
+.access-gate-input:focus {
+  box-shadow: 
+    0 0 0 4px rgba(251, 191, 36, 0.1),
+    0 0 20px rgba(251, 191, 36, 0.2),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Button shine effect */
+@keyframes access-gate-button-shine {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 150%;
+  }
+}
+
+.access-gate-button-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: access-gate-button-shine 3s ease-in-out infinite;
+}
+
+/* Error message entrance animation */
+@keyframes access-gate-error-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.access-gate-error {
+  animation: access-gate-error-entrance 0.3s ease-out forwards;
+}
+
+/* Button hover glow enhancement */
+.access-gate-button:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 12px 40px rgba(251, 191, 36, 0.4),
+    0 0 60px rgba(251, 191, 36, 0.2);
+}
+
+.access-gate-button:not(:disabled):active {
+  transform: translateY(0);
+  box-shadow: 
+    0 4px 20px rgba(251, 191, 36, 0.3),
+    0 0 30px rgba(251, 191, 36, 0.15);
+}
+
+/* Header staggered animation */
+.access-gate-header > * {
+  animation: access-gate-entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.access-gate-header > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.access-gate-header > *:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.access-gate-header > *:nth-child(3) {
+  animation-delay: 0.3s;
 }
 
 /* ========================================
@@ -171,6 +403,45 @@ article:hover,
   /* Better spacing on mobile */
   .p-6 {
     padding: 1rem;
+  }
+
+  /* AccessGate mobile optimizations */
+  .access-gate-card {
+    padding: 1.5rem;
+  }
+
+  .access-gate-input {
+    font-size: 16px; /* Prevents iOS zoom */
+    padding: 0.875rem 1rem;
+    padding-right: 2.75rem; /* Space for eye icon */
+  }
+
+  .access-gate-button {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    min-height: 52px; /* Better touch target */
+  }
+
+  /* Reduce background orb size on mobile */
+  .access-gate-bg-orb-1 {
+    width: 300px;
+    height: 300px;
+  }
+
+  .access-gate-bg-orb-2 {
+    width: 250px;
+    height: 250px;
+  }
+
+  /* Adjust header for mobile */
+  .access-gate-header h1 {
+    font-size: 3rem; /* Proportionally larger than before */
+  }
+
+  /* Better error message spacing */
+  .access-gate-error {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
   }
 }
 

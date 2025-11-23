@@ -5,7 +5,7 @@ Generates 3-5 unique content ideas with Hook, Script, Hashtags
 from flask import Blueprint, request, jsonify
 from utils import generate_ai_content
 from ai_persona import PRODUCT_INVENTORY
-from backend.middleware.auth_middleware import require_auth
+from middleware.auth_middleware import require_auth
 import json
 import random
 

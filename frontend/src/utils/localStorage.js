@@ -10,6 +10,8 @@ const STORAGE_KEYS = {
   PRODUCT_TIMESTAMP: 'rockma_productTimestamp',
   RECENT_DRAFTS: 'rockma_recentDrafts',
   FIRST_VISIT: 'rockma_firstVisit',
+  COMPETITOR_CLIPS: 'rockma_competitorClips',
+  FAVORITES: 'rockma_favorites',
 };
 
 // Product inventory (matches backend)
@@ -177,5 +179,127 @@ export function clearDashboardData() {
   Object.values(STORAGE_KEYS).forEach(key => {
     localStorage.removeItem(key);
   });
+}
+
+/**
+ * Save a competitor clip
+ * @param {string} text - The competitor content/link
+ */
+export function saveCompetitorClip(text) {
+  try {
+    const clipsJson = localStorage.getItem(STORAGE_KEYS.COMPETITOR_CLIPS);
+    let clips = clipsJson ? JSON.parse(clipsJson) : [];
+
+    const newClip = {
+      id: Date.now().toString(),
+      text,
+      timestamp: new Date().toISOString(),
+      snippet: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+    };
+
+    clips.unshift(newClip);
+    clips = clips.slice(0, 10); // Keep last 10
+
+    localStorage.setItem(STORAGE_KEYS.COMPETITOR_CLIPS, JSON.stringify(clips));
+    return true;
+  } catch (error) {
+    console.error('Error saving competitor clip:', error);
+    return false;
+  }
+}
+
+/**
+ * Get all competitor clips
+ */
+export function getCompetitorClips() {
+  try {
+    const clipsJson = localStorage.getItem(STORAGE_KEYS.COMPETITOR_CLIPS);
+    return clipsJson ? JSON.parse(clipsJson) : [];
+  } catch (error) {
+    console.error('Error getting competitor clips:', error);
+    return [];
+  }
+}
+
+/**
+ * Delete a competitor clip by ID
+ */
+export function deleteCompetitorClip(id) {
+  try {
+    const clips = getCompetitorClips();
+    const filtered = clips.filter(clip => clip.id !== id);
+    localStorage.setItem(STORAGE_KEYS.COMPETITOR_CLIPS, JSON.stringify(filtered));
+    return true;
+  } catch (error) {
+    console.error('Error deleting competitor clip:', error);
+    return false;
+  }
+}
+
+/**
+ * Save a favorite (starred content)
+ * @param {string} content - The content text
+ * @param {string} type - Type: 'Daily Idea', 'Adaptation', or 'Translation'
+ * @param {object} metadata - Optional metadata (platform, audience, etc.)
+ */
+export function saveFavorite(content, type, metadata = {}) {
+  try {
+    const favsJson = localStorage.getItem(STORAGE_KEYS.FAVORITES);
+    let favorites = favsJson ? JSON.parse(favsJson) : [];
+
+    const newFav = {
+      id: Date.now().toString(),
+      content,
+      type,
+      metadata,
+      timestamp: new Date().toISOString(),
+      snippet: content.substring(0, 60) + (content.length > 60 ? '...' : ''),
+    };
+
+    favorites.unshift(newFav);
+    favorites = favorites.slice(0, 20); // Keep last 20
+
+    localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favorites));
+    return true;
+  } catch (error) {
+    console.error('Error saving favorite:', error);
+    return false;
+  }
+}
+
+/**
+ * Get all favorites
+ */
+export function getFavorites() {
+  try {
+    const favsJson = localStorage.getItem(STORAGE_KEYS.FAVORITES);
+    return favsJson ? JSON.parse(favsJson) : [];
+  } catch (error) {
+    console.error('Error getting favorites:', error);
+    return [];
+  }
+}
+
+/**
+ * Delete a favorite by ID
+ */
+export function deleteFavorite(id) {
+  try {
+    const favorites = getFavorites();
+    const filtered = favorites.filter(fav => fav.id !== id);
+    localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(filtered));
+    return true;
+  } catch (error) {
+    console.error('Error deleting favorite:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if content is already favorited
+ */
+export function isFavorited(content) {
+  const favorites = getFavorites();
+  return favorites.some(fav => fav.content === content);
 }
 

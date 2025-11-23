@@ -4,7 +4,7 @@ Validates access code on every API request
 """
 from functools import wraps
 from flask import request, jsonify
-from backend.config import Config
+from config import Config
 
 def require_auth(f):
     """

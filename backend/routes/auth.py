@@ -2,7 +2,7 @@
 Authentication routes for access code validation
 """
 from flask import Blueprint
-from backend.middleware.auth_middleware import validate_access_code_endpoint
+from middleware.auth_middleware import validate_access_code_endpoint
 
 auth_bp = Blueprint('auth', __name__)
 
