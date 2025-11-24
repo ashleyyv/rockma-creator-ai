@@ -10,7 +10,7 @@ CORS(app, resources={
         "origins": [
             "http://localhost:5173",  # Local development
             "https://*.vercel.app",   # Vercel preview deployments
-            "https://rockma-creator-ai.vercel.app"  # Production (adjust domain)
+            "https://rockma-creator-ai-5uud.vercel.app"  # Production
         ],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
