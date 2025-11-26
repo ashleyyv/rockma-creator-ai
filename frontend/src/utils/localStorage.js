@@ -10,8 +10,8 @@ const STORAGE_KEYS = {
   PRODUCT_TIMESTAMP: 'rockma_productTimestamp',
   RECENT_DRAFTS: 'rockma_recentDrafts',
   FIRST_VISIT: 'rockma_firstVisit',
-  COMPETITOR_CLIPS: 'rockma_competitorClips',
   FAVORITES: 'rockma_favorites',
+  REMIX_QUEUE: 'rockma_remixQueue',
 };
 
 // Product inventory (matches backend)
@@ -182,61 +182,6 @@ export function clearDashboardData() {
 }
 
 /**
- * Save a competitor clip
- * @param {string} text - The competitor content/link
- */
-export function saveCompetitorClip(text) {
-  try {
-    const clipsJson = localStorage.getItem(STORAGE_KEYS.COMPETITOR_CLIPS);
-    let clips = clipsJson ? JSON.parse(clipsJson) : [];
-
-    const newClip = {
-      id: Date.now().toString(),
-      text,
-      timestamp: new Date().toISOString(),
-      snippet: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
-    };
-
-    clips.unshift(newClip);
-    clips = clips.slice(0, 10); // Keep last 10
-
-    localStorage.setItem(STORAGE_KEYS.COMPETITOR_CLIPS, JSON.stringify(clips));
-    return true;
-  } catch (error) {
-    console.error('Error saving competitor clip:', error);
-    return false;
-  }
-}
-
-/**
- * Get all competitor clips
- */
-export function getCompetitorClips() {
-  try {
-    const clipsJson = localStorage.getItem(STORAGE_KEYS.COMPETITOR_CLIPS);
-    return clipsJson ? JSON.parse(clipsJson) : [];
-  } catch (error) {
-    console.error('Error getting competitor clips:', error);
-    return [];
-  }
-}
-
-/**
- * Delete a competitor clip by ID
- */
-export function deleteCompetitorClip(id) {
-  try {
-    const clips = getCompetitorClips();
-    const filtered = clips.filter(clip => clip.id !== id);
-    localStorage.setItem(STORAGE_KEYS.COMPETITOR_CLIPS, JSON.stringify(filtered));
-    return true;
-  } catch (error) {
-    console.error('Error deleting competitor clip:', error);
-    return false;
-  }
-}
-
-/**
  * Save a favorite (starred content)
  * @param {string} content - The content text
  * @param {string} type - Type: 'Daily Idea', 'Adaptation', or 'Translation'
@@ -301,5 +246,106 @@ export function deleteFavorite(id) {
 export function isFavorited(content) {
   const favorites = getFavorites();
   return favorites.some(fav => fav.content === content);
+}
+
+// ========================================
+// REMIX QUEUE (IDEA CLIPPER) FUNCTIONS
+// ========================================
+
+/**
+ * Save an idea clip to the Remix Queue
+ * @param {string} text - The captured content text (required)
+ * @param {string} url - Optional source URL for reference
+ * @param {string} intent - Transformation intent tag (required)
+ * @param {string} notes - Optional user notes
+ * @returns {boolean} Success status
+ */
+export function saveIdeaClip(text, url = '', intent = 'general_rewrite', notes = '') {
+  try {
+    const queueJson = localStorage.getItem(STORAGE_KEYS.REMIX_QUEUE);
+    let queue = queueJson ? JSON.parse(queueJson) : [];
+
+    const newClip = {
+      id: Date.now().toString(),
+      text: text.trim(),
+      url: url.trim(),
+      intent,
+      notes: notes.trim(),
+      timestamp: new Date().toISOString(),
+      snippet: text.substring(0, 60) + (text.length > 60 ? '...' : ''),
+    };
+
+    // Add to beginning of array
+    queue.unshift(newClip);
+
+    // Keep only last 50 ideas
+    queue = queue.slice(0, 50);
+
+    localStorage.setItem(STORAGE_KEYS.REMIX_QUEUE, JSON.stringify(queue));
+    return true;
+  } catch (error) {
+    console.error('Error saving idea clip:', error);
+    return false;
+  }
+}
+
+/**
+ * Get all idea clips from the Remix Queue
+ * @returns {Array} Array of idea clip objects
+ */
+export function getRemixQueue() {
+  try {
+    const queueJson = localStorage.getItem(STORAGE_KEYS.REMIX_QUEUE);
+    return queueJson ? JSON.parse(queueJson) : [];
+  } catch (error) {
+    console.error('Error getting remix queue:', error);
+    return [];
+  }
+}
+
+/**
+ * Get a specific idea clip by ID
+ * @param {string} id - The clip ID
+ * @returns {object|null} The clip object or null if not found
+ */
+export function getIdeaClipById(id) {
+  try {
+    const queue = getRemixQueue();
+    return queue.find(clip => clip.id === id) || null;
+  } catch (error) {
+    console.error('Error getting idea clip by ID:', error);
+    return null;
+  }
+}
+
+/**
+ * Delete a single idea clip from the Remix Queue
+ * @param {string} id - The clip ID to delete
+ * @returns {boolean} Success status
+ */
+export function deleteIdeaClip(id) {
+  try {
+    const queue = getRemixQueue();
+    const filtered = queue.filter(clip => clip.id !== id);
+    localStorage.setItem(STORAGE_KEYS.REMIX_QUEUE, JSON.stringify(filtered));
+    return true;
+  } catch (error) {
+    console.error('Error deleting idea clip:', error);
+    return false;
+  }
+}
+
+/**
+ * Clear all idea clips from the Remix Queue
+ * @returns {boolean} Success status
+ */
+export function clearRemixQueue() {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.REMIX_QUEUE);
+    return true;
+  } catch (error) {
+    console.error('Error clearing remix queue:', error);
+    return false;
+  }
 }
 

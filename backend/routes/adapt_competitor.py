@@ -6,6 +6,7 @@ from flask import Blueprint, request, jsonify
 from utils import generate_ai_content
 from request_validators import validate_json_request
 from middleware.auth_middleware import require_auth
+from ai_persona import get_contextual_prompt
 
 adapt_competitor_bp = Blueprint('adapt_competitor', __name__)
 
@@ -25,12 +26,18 @@ def rewrite_content():
     try:
         data = request.get_json()
         competitor_text = data['competitorText'].strip()
+        seasonality = data.get('seasonality', 'none')
+        pillar = data.get('pillar', 'support')
         
         if not competitor_text:
             return jsonify({
                 'success': False,
                 'error': 'competitorText cannot be empty'
             }), 400
+        
+        # Get contextual prompt based on settings
+        contextual_prompt = get_contextual_prompt(seasonality, pillar)
+        contextual_instruction = f"\n\n{contextual_prompt}" if contextual_prompt else ""
         
         # Build the prompt for adapting content
         user_prompt = f"""Rewrite the following competitor content (from brands like Burt's Bees, EOS, or similar) in the RockMa "Mama's Love" brand voice.
@@ -48,7 +55,7 @@ INSTRUCTIONS:
    - Leaping Bunny certified
 3. Use the brand keywords: Love, Joy, Hope, Peace, Nurture, Clean, Healthy, Community, Inspire
 4. Make it feel authentic and personal, like a caring note from a mother
-5. Keep the same general structure and length, but infuse it with RockMa's personality
+5. Keep the same general structure and length, but infuse it with RockMa's personality{contextual_instruction}
 
 Return ONLY the rewritten content, without any additional explanation or formatting."""
 

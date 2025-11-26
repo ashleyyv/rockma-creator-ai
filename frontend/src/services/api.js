@@ -5,6 +5,15 @@ import { API_ENDPOINTS } from '../utils/constants.js';
 import { getAuthHeader, clearAccessCode } from '../utils/auth.js';
 
 /**
+ * Helper function to get user settings from localStorage
+ */
+function getUserSettings() {
+  const seasonality = localStorage.getItem('rockma_seasonality') || 'none';
+  const pillar = localStorage.getItem('rockma_pillar') || 'support';
+  return { seasonality, pillar };
+}
+
+/**
  * Generic API request function with error handling and authentication
  * @param {string} url - The API endpoint URL
  * @param {object} options - Fetch options (method, body, headers, etc.)
@@ -80,9 +89,10 @@ export const api = {
    * @returns {Promise<{ideas: Array<{hook: string, script: string, hashtags: string}>, product: string}>}
    */
   async generateDailyInspiration(selectedProduct = null) {
+    const settings = getUserSettings();
     return apiRequest(API_ENDPOINTS.DAILY_INSPIRATION, {
       method: 'POST',
-      body: JSON.stringify({ product: selectedProduct }),
+      body: JSON.stringify({ product: selectedProduct, ...settings }),
     });
   },
 
@@ -92,9 +102,10 @@ export const api = {
    * @returns {Promise<{adaptedText: string}>}
    */
   async adaptCompetitor(competitorText) {
+    const settings = getUserSettings();
     return apiRequest(API_ENDPOINTS.ADAPT_COMPETITOR, {
       method: 'POST',
-      body: JSON.stringify({ competitorText }),
+      body: JSON.stringify({ competitorText, ...settings }),
     });
   },
 
@@ -106,9 +117,10 @@ export const api = {
    * @returns {Promise<{translatedContent: string}>}
    */
   async translatePlatform(sourceText, platform, audience) {
+    const settings = getUserSettings();
     return apiRequest(API_ENDPOINTS.PLATFORM_TRANSLATOR, {
       method: 'POST',
-      body: JSON.stringify({ sourceText, platform, audience }),
+      body: JSON.stringify({ sourceText, platform, audience, ...settings }),
     });
   },
 };

@@ -6,6 +6,7 @@ from flask import Blueprint, request, jsonify
 from utils import generate_ai_content
 from request_validators import validate_json_request
 from middleware.auth_middleware import require_auth
+from ai_persona import get_contextual_prompt
 
 platform_translator_bp = Blueprint('platform_translator', __name__)
 
@@ -80,6 +81,8 @@ def translate_content():
         source_text = data['sourceText'].strip()
         platform = data['platform']
         audience = data['audience']
+        seasonality = data.get('seasonality', 'none')
+        pillar = data.get('pillar', 'support')
         
         if not source_text:
             return jsonify({
@@ -104,6 +107,10 @@ def translate_content():
         platform_guidelines = PLATFORM_GUIDELINES[platform]
         audience_guidelines = AUDIENCE_GUIDELINES[audience]
         
+        # Get contextual prompt based on settings
+        contextual_prompt = get_contextual_prompt(seasonality, pillar)
+        contextual_instruction = f"\n\n{contextual_prompt}" if contextual_prompt else ""
+        
         # Build the prompt for platform/audience translation
         user_prompt = f"""Transform the following RockMa content for {platform} targeting the {audience} audience.
 
@@ -125,7 +132,7 @@ INSTRUCTIONS:
 2. Adapt the content to match {platform} format and tone requirements
 3. Tailor the messaging to resonate with {audience} values and language
 4. Keep the RockMa differentiators (mom-owned, clean, organic, ethically made in USA)
-5. Ensure the content feels authentic and appropriate for the platform
+5. Ensure the content feels authentic and appropriate for the platform{contextual_instruction}
 6. Return ONLY the translated content, without any additional explanation or formatting."""
 
         # Generate translated content using AI

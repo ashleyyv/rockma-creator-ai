@@ -4,7 +4,7 @@ Generates 3-5 unique content ideas with Hook, Script, Hashtags
 """
 from flask import Blueprint, request, jsonify
 from utils import generate_ai_content
-from ai_persona import PRODUCT_INVENTORY
+from ai_persona import PRODUCT_INVENTORY, get_contextual_prompt
 from middleware.auth_middleware import require_auth
 import json
 import random
@@ -27,9 +27,14 @@ def generate_ideas():
     Returns: { ideas: [{ hook, script, hashtags }], product: string }
     """
     try:
-        # Get product from request body (optional)
+        # Get product and settings from request body (optional)
         data = request.get_json() or {}
         requested_product = data.get('product', None)
+        seasonality = data.get('seasonality', 'none')
+        pillar = data.get('pillar', 'support')
+        
+        # Get contextual prompt based on settings
+        contextual_prompt = get_contextual_prompt(seasonality, pillar)
         
         # Get all available products for validation
         all_products = []
@@ -51,7 +56,8 @@ def generate_ideas():
             selected_product = get_random_product()
         
         # Build the prompt for generating ideas
-        user_prompt = f"""Generate 3-5 unique content ideas for social media (TikTok, Instagram, Facebook) about this specific RockMa product: {selected_product}
+        contextual_instruction = f"\n\n{contextual_prompt}" if contextual_prompt else ""
+        user_prompt = f"""Generate 3-5 unique content ideas for social media (TikTok, Instagram, Facebook) about this specific RockMa product: {selected_product}{contextual_instruction}
 
 For each idea, provide:
 1. HOOK: An attention-grabbing opening line (1-2 sentences)

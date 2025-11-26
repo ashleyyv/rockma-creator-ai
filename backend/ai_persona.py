@@ -83,3 +83,35 @@ def get_product_list():
         products.extend(items)
     return products
 
+# Seasonality and Communication Pillar Prompts (Phase 3)
+SEASONALITY_PROMPTS = {
+    "none": "",
+    "christmas": "Context: It's the Christmas season. Emphasize warmth, family togetherness, gift-giving, and the joy of the holidays. Mention how RockMa products make perfect stocking stuffers or self-care gifts.",
+    "new_year": "Context: New Year, new you. Focus on fresh starts, self-care resolutions, clean beauty commitments, and setting intentions for wellness.",
+    "easter": "Context: Spring renewal and Easter celebrations. Highlight rebirth, fresh beginnings, pastel colors, and family traditions.",
+    "mothers_day": "Context: Mother's Day appreciation. Emphasize celebrating moms, self-care for mothers, gift ideas, and honoring maternal love.",
+    "fathers_day": "Context: Father's Day celebration. Emphasize gifts for dads, self-care products men can use, family appreciation, and honoring paternal figures.",
+    "spring": "Context: Spring season. Focus on renewal, fresh starts, spring cleaning routines, lighter skincare, and embracing warmer weather ahead.",
+    "summer": "Context: Summer vibes. Focus on sun protection, beach-ready skin, vacation self-care, and staying fresh in the heat.",
+    "fall": "Context: Fall season. Emphasize cozy vibes, transitioning skincare routines, preparation for cooler weather, and autumn self-care rituals.",
+    "winter": "Context: Winter season. Focus on hydration for dry skin, protection from harsh weather, indoor comfort routines, and winter wellness.",
+    "back_to_school": "Context: Back to school season. Emphasize routines, organization, stress relief for parents, and quick self-care for busy mornings."
+}
+
+PILLAR_PROMPTS = {
+    "support": "Communication Pillar: SUPPORT. Emphasize emotional support, community, 'you're not alone', mom-to-mom encouragement, and RockMa as a caring companion in their journey.",
+    "safety": "Communication Pillar: SAFETY. Focus on clean ingredients, USDA Organic certification, Leaping Bunny cruelty-free status, transparency, and trustworthy formulations for sensitive skin.",
+    "motivation": "Communication Pillar: MOTIVATION. Use inspirational quotes, 'Aspire to Inspire' messaging, empowerment, self-worth, and encouraging women to prioritize self-care.",
+    "behind_brand": "Communication Pillar: BEHIND THE BRAND. Share Marie's story, the mom & pop origin, Queens roots, faith-based mission, and the personal touch in every product.",
+    "product_education": "Communication Pillar: PRODUCT EDUCATION. Explain ingredients, benefits, usage tips, comparisons to conventional products, and why clean beauty matters."
+}
+
+def get_contextual_prompt(seasonality='none', pillar='support'):
+    """Returns combined context prompt based on user settings"""
+    season_context = SEASONALITY_PROMPTS.get(seasonality, "")
+    pillar_context = PILLAR_PROMPTS.get(pillar, "")
+    
+    # Combine contexts with newline if both exist
+    contexts = [ctx for ctx in [season_context, pillar_context] if ctx]
+    return "\n".join(contexts)
+
