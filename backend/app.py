@@ -4,18 +4,44 @@ from config import Config
 
 # Initialize the Flask app
 app = Flask(__name__)
-# Set up CORS to allow our React app (from a different 'origin') to make requests
-CORS(app, resources={
-    r"/api/*": {
-        "origins": [
-            "http://localhost:5173",  # Local development
-            "https://*.vercel.app",   # Vercel preview deployments
-            "https://rockma-creator-ai-5uud.vercel.app"  # Production
-        ],
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
-})
+
+# CORS configuration - allow Vercel deployments and localhost
+# Use a callable function to dynamically check origins for better flexibility
+def cors_origin_check(origin):
+    """Check if origin is allowed for CORS"""
+    if not origin:
+        return None
+    
+    # Always allow localhost for development
+    if origin.startswith("http://localhost"):
+        return origin
+    
+    # Allow specific production URLs
+    allowed_production = [
+        "https://rockma-creator-ai-5uud.vercel.app",
+        "https://rockma-content-ai.vercel.app",
+    ]
+    if origin in allowed_production:
+        return origin
+    
+    # Allow any Vercel subdomain (preview deployments)
+    if origin.endswith(".vercel.app"):
+        return origin
+    
+    # Reject all other origins
+    return None
+
+# Set up CORS with dynamic origin checking
+# Flask-CORS supports callable functions for origins
+CORS(app, 
+     origins=cors_origin_check,
+     resources={
+         r"/api/*": {
+             "methods": ["GET", "POST", "OPTIONS"],
+             "allow_headers": ["Content-Type", "Authorization"],
+             "supports_credentials": False
+         }
+     })
 
 # Error handling middleware
 @app.errorhandler(400)
@@ -44,6 +70,32 @@ def health_check():
     return jsonify({
         "status": "healthy",
         "service": "RockMa Creator AI API"
+    })
+
+# Root route
+@app.route("/", methods=['GET'])
+def root():
+    return jsonify({
+        "service": "RockMa Creator AI API",
+        "status": "running",
+        "version": "1.0.0",
+        "endpoints": {
+            "health": "/api/health",
+            "test": "/api/test",
+            "auth": {
+                "validate": "/api/auth/validate"
+            },
+            "daily_inspiration": {
+                "generate": "/api/daily-inspiration/generate"
+            },
+            "adapt_competitor": {
+                "rewrite": "/api/adapt-competitor/rewrite"
+            },
+            "platform_translator": {
+                "translate": "/api/platform-translator/translate"
+            }
+        },
+        "documentation": "See /api/health for service status"
     })
 
 # Import route modules
