@@ -6,35 +6,18 @@ from config import Config
 app = Flask(__name__)
 
 # CORS configuration - allow Vercel deployments and localhost
-# Use a callable function to dynamically check origins for better flexibility
-def cors_origin_check(origin):
-    """Check if origin is allowed for CORS"""
-    if not origin:
-        return None
-    
-    # Always allow localhost for development
-    if origin.startswith("http://localhost"):
-        return origin
-    
-    # Allow specific production URLs
-    allowed_production = [
-        "https://rockma-creator-ai-5uud.vercel.app",
-        "https://rockma-content-ai.vercel.app",
-    ]
-    if origin in allowed_production:
-        return origin
-    
-    # Allow any Vercel subdomain (preview deployments)
-    if origin.endswith(".vercel.app"):
-        return origin
-    
-    # Reject all other origins
-    return None
+# List all allowed origins explicitly
+allowed_origins = [
+    "http://localhost:5173",  # Local development
+    "http://localhost:3000",   # Alternative local port
+    "https://rockma-creator-ai-5uud.vercel.app",  # Production
+    "https://rockma-content-ai.vercel.app",  # Alternative production URL
+]
 
-# Set up CORS with dynamic origin checking
-# Flask-CORS supports callable functions for origins
+# Set up CORS with explicit origins list
+# For preview deployments, add the specific Vercel preview URL when needed
 CORS(app, 
-     origins=cors_origin_check,
+     origins=allowed_origins,
      resources={
          r"/api/*": {
              "methods": ["GET", "POST", "OPTIONS"],
