@@ -98,20 +98,22 @@ button, input, textarea, select {
    ACCESS GATE ANIMATIONS & LUXURY STYLES
    ======================================== */
 
-/* Fade-in animation for entire login screen */
+/* Fade-in animation for entire login screen - Enhanced smoothness */
 @keyframes access-gate-entrance {
   from {
     opacity: 0;
     transform: translateY(20px) scale(0.98);
+    filter: blur(4px);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+    filter: blur(0);
   }
 }
 
 .access-gate-fade-in {
-  animation: access-gate-entrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: access-gate-entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Shake animation for invalid code errors */
@@ -139,16 +141,19 @@ button, input, textarea, select {
   animation: access-gate-spin 1s linear infinite;
 }
 
-/* Floating background orbs for luxury aesthetic */
+/* Floating background orbs for luxury aesthetic - Smoother transitions */
 @keyframes access-gate-float {
   0%, 100% {
-    transform: translate(0, 0) scale(1);
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 0.15;
   }
   33% {
-    transform: translate(30px, -30px) scale(1.1);
+    transform: translate(30px, -30px) scale(1.1) rotate(120deg);
+    opacity: 0.2;
   }
   66% {
-    transform: translate(-20px, 20px) scale(0.9);
+    transform: translate(-20px, 20px) scale(0.9) rotate(240deg);
+    opacity: 0.18;
   }
 }
 
@@ -214,26 +219,379 @@ button, input, textarea, select {
   border-color: rgba(251, 191, 36, 0.3);
 }
 
-/* Card pulsing glow animation */
+/* Card pulsing glow animation - Smoother material transitions */
 @keyframes access-gate-card-pulse {
   0%, 100% {
     box-shadow: 
-      0 0 40px rgba(0, 0, 0, 0.3),
-      0 0 60px rgba(251, 191, 36, 0.15),
-      0 0 100px rgba(251, 191, 36, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      0 0 0 1px rgba(0, 0, 0, 0.1),
+      0 4px 20px rgba(0, 0, 0, 0.2),
+      0 8px 40px rgba(0, 0, 0, 0.15),
+      0 0 60px rgba(251, 191, 36, 0.1),
+      0 0 100px rgba(251, 191, 36, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.2);
   }
   50% {
     box-shadow: 
-      0 0 50px rgba(0, 0, 0, 0.35),
-      0 0 90px rgba(251, 191, 36, 0.25),
-      0 0 140px rgba(251, 191, 36, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      0 0 0 1px rgba(0, 0, 0, 0.15),
+      0 6px 30px rgba(0, 0, 0, 0.25),
+      0 12px 60px rgba(0, 0, 0, 0.2),
+      0 0 80px rgba(251, 191, 36, 0.15),
+      0 0 140px rgba(251, 191, 36, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.3);
   }
 }
 
 .access-gate-card-glow {
-  animation: access-gate-card-pulse 4s ease-in-out infinite;
+  animation: access-gate-card-pulse 5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ========================================
+   PREMIUM GLASS MATERIALS
+   ======================================== */
+
+/* Multi-layer glass card structure */
+.access-gate-glass-premium {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+/* Base layer - Dark semi-transparent background */
+.access-gate-glass-base {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.75) 0%,
+    rgba(24, 24, 27, 0.85) 50%,
+    rgba(15, 23, 42, 0.75) 100%
+  );
+  z-index: 1;
+}
+
+/* Middle layer - Frosted glass with backdrop-blur */
+.access-gate-glass-frosted {
+  background: rgba(15, 23, 42, 0.25);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  z-index: 2;
+}
+
+/* Top layer - Tinted glass overlay with amber/gold tint */
+.access-gate-glass-tinted {
+  background: linear-gradient(
+    135deg,
+    rgba(251, 191, 36, 0.03) 0%,
+    rgba(234, 179, 8, 0.05) 50%,
+    rgba(251, 191, 36, 0.03) 100%
+  );
+  z-index: 3;
+}
+
+/* Texture overlay - Subtle grain for premium surface feel */
+.access-gate-texture-overlay {
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.015) 1px, transparent 0);
+  background-size: 20px 20px;
+  opacity: 0.4;
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* Metallic border with gradient and shine effect */
+.access-gate-metallic-border {
+  border: 1.5px solid transparent;
+  background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.9) 0%,
+      rgba(24, 24, 27, 0.9) 100%
+    )
+    padding-box,
+    linear-gradient(
+      135deg,
+      rgba(251, 191, 36, 0.2) 0%,
+      rgba(234, 179, 8, 0.4) 25%,
+      rgba(251, 191, 36, 0.6) 50%,
+      rgba(234, 179, 8, 0.4) 75%,
+      rgba(251, 191, 36, 0.2) 100%
+    )
+    border-box;
+  background-clip: padding-box, border-box;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Metallic border shine animation */
+@keyframes access-gate-metallic-shine {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.access-gate-metallic-border::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: access-gate-metallic-shine 4s ease-in-out infinite;
+  z-index: -1;
+}
+
+/* Enhanced card hover with material depth */
+.access-gate-glass-premium:hover .access-gate-metallic-border {
+  background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.9) 0%,
+      rgba(24, 24, 27, 0.9) 100%
+    )
+    padding-box,
+    linear-gradient(
+      135deg,
+      rgba(251, 191, 36, 0.3) 0%,
+      rgba(234, 179, 8, 0.5) 25%,
+      rgba(251, 191, 36, 0.7) 50%,
+      rgba(234, 179, 8, 0.5) 75%,
+      rgba(251, 191, 36, 0.3) 100%
+    )
+    border-box;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Smooth material transitions for glass layers */
+.access-gate-glass-base,
+.access-gate-glass-frosted,
+.access-gate-glass-tinted,
+.access-gate-texture-overlay {
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.access-gate-glass-premium:hover .access-gate-glass-tinted {
+  opacity: 1.1;
+}
+
+/* ========================================
+   PREMIUM INPUT MATERIALS
+   ======================================== */
+
+/* Enhanced glass input field */
+.access-gate-input-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(2, 6, 23, 0.6) 0%,
+    rgba(15, 23, 42, 0.7) 100%
+  );
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1.5px solid rgba(71, 85, 105, 0.4);
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.05),
+    0 0 0 0 rgba(251, 191, 36, 0);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Input inner glow effect */
+.access-gate-input-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at center,
+    rgba(251, 191, 36, 0.1) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Input focus state with metallic border */
+.access-gate-input-glass:focus {
+  border-color: rgba(251, 191, 36, 0.6);
+  background: linear-gradient(
+    135deg,
+    rgba(2, 6, 23, 0.7) 0%,
+    rgba(15, 23, 42, 0.8) 100%
+  );
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.4),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.08),
+    0 0 0 4px rgba(251, 191, 36, 0.15),
+    0 0 30px rgba(251, 191, 36, 0.25),
+    inset 0 0 20px rgba(251, 191, 36, 0.1);
+}
+
+.access-gate-input-glass:focus::before {
+  opacity: 1;
+}
+
+/* Input placeholder premium styling */
+.access-gate-input-glass::placeholder {
+  color: rgba(148, 163, 184, 0.5);
+  font-weight: 300;
+  letter-spacing: 0.025em;
+}
+
+/* ========================================
+   PREMIUM BUTTON METALLIC FINISH
+   ======================================== */
+
+/* Metallic button with gradient finish */
+.access-gate-button-metallic {
+  background: linear-gradient(
+    135deg,
+    #f59e0b 0%,
+    #eab308 25%,
+    #fbbf24 50%,
+    #eab308 75%,
+    #f59e0b 100%
+  );
+  background-size: 200% 200%;
+  box-shadow: 
+    0 4px 20px rgba(251, 191, 36, 0.3),
+    0 0 40px rgba(251, 191, 36, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Metallic button reflective shine */
+@keyframes access-gate-metallic-reflect {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(200%) translateY(200%) rotate(45deg);
+  }
+}
+
+.access-gate-button-metallic::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 70%
+  );
+  animation: access-gate-metallic-reflect 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Button hover state with enhanced depth */
+.access-gate-button-metallic:not(:disabled):hover {
+  background-position: 100% 0%;
+  box-shadow: 
+    0 8px 30px rgba(251, 191, 36, 0.4),
+    0 0 60px rgba(251, 191, 36, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Button active state */
+.access-gate-button-metallic:not(:disabled):active {
+  transform: translateY(0);
+  box-shadow: 
+    0 2px 15px rgba(251, 191, 36, 0.3),
+    0 0 30px rgba(251, 191, 36, 0.2),
+    inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ========================================
+   METALLIC ICON ACCENTS
+   ======================================== */
+
+/* Metallic icon with reflective properties */
+.access-gate-icon-metallic {
+  filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.3));
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.access-gate-icon-metallic:hover {
+  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.6))
+          drop-shadow(0 0 8px rgba(251, 191, 36, 0.3));
+  transform: scale(1.1);
+}
+
+/* ========================================
+   METALLIC DIVIDER ELEMENTS
+   ======================================== */
+
+/* Metallic gradient dividers */
+.access-gate-metallic-divider {
+  position: relative;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(251, 191, 36, 0.3) 50%,
+    transparent 100%
+  );
+  box-shadow: 0 0 4px rgba(251, 191, 36, 0.2);
+}
+
+.access-gate-metallic-divider-top {
+  border-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(251, 191, 36, 0.2) 20%,
+    rgba(234, 179, 8, 0.3) 50%,
+    rgba(251, 191, 36, 0.2) 80%,
+    transparent 100%
+  ) 1;
+  border-top: 1px solid;
+}
+
+/* ========================================
+   ENHANCED SHADOWS & DEPTH
+   ======================================== */
+
+/* Multi-layer shadows for realistic depth */
+.access-gate-glass-premium {
+  box-shadow: 
+    /* Ambient shadow */
+    0 0 0 1px rgba(0, 0, 0, 0.1),
+    /* Soft shadow layer */
+    0 4px 20px rgba(0, 0, 0, 0.2),
+    /* Medium shadow layer */
+    0 8px 40px rgba(0, 0, 0, 0.15),
+    /* Colored glow */
+    0 0 60px rgba(251, 191, 36, 0.1),
+    0 0 100px rgba(251, 191, 36, 0.05),
+    /* Inner highlight */
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    /* Inner shadow for depth */
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced hover depth */
+.access-gate-glass-premium:hover {
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.15),
+    0 6px 30px rgba(0, 0, 0, 0.25),
+    0 12px 60px rgba(0, 0, 0, 0.2),
+    0 0 80px rgba(251, 191, 36, 0.15),
+    0 0 140px rgba(251, 191, 36, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* Input field luxury styling */
@@ -244,13 +602,21 @@ button, input, textarea, select {
     inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Button shine effect */
+/* Button shine effect - Enhanced smoothness */
 @keyframes access-gate-button-shine {
   0% {
     left: -100%;
+    opacity: 0;
   }
-  50%, 100% {
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
     left: 150%;
+    opacity: 0;
   }
 }
 
@@ -263,11 +629,11 @@ button, input, textarea, select {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.4),
     transparent
   );
   transform: skewX(-20deg);
-  animation: access-gate-button-shine 3s ease-in-out infinite;
+  animation: access-gate-button-shine 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Error message entrance animation */
@@ -286,20 +652,7 @@ button, input, textarea, select {
   animation: access-gate-error-entrance 0.3s ease-out forwards;
 }
 
-/* Button hover glow enhancement */
-.access-gate-button:not(:disabled):hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    0 12px 40px rgba(251, 191, 36, 0.4),
-    0 0 60px rgba(251, 191, 36, 0.2);
-}
-
-.access-gate-button:not(:disabled):active {
-  transform: translateY(0);
-  box-shadow: 
-    0 4px 20px rgba(251, 191, 36, 0.3),
-    0 0 30px rgba(251, 191, 36, 0.15);
-}
+/* Button hover glow enhancement - Removed (now handled by metallic button class) */
 
 /* Header staggered animation */
 .access-gate-header > * {

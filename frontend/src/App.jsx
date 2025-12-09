@@ -24,13 +24,22 @@ import {
   clearDailyInspirationSession,
   saveTransformSession,
   getTransformSession,
-  clearTransformSession
+  clearTransformSession,
+  updateDraftContent,
+  updateFavoriteContent,
+  updateIdeaClipContent,
+  markDraftAsPosted,
+  markFavoriteAsPosted,
+  markIdeaClipAsPosted,
+  bulkDeleteDrafts,
+  bulkDeleteFavorites,
+  bulkDeleteIdeaClips
 } from './utils/localStorage.js';
 import AccessGate from './components/AccessGate.jsx';
 import StrategyDashboard from './components/StrategyDashboard.jsx';
 import PlatformQuickAccess from './components/PlatformQuickAccess.jsx';
 import { isAuthenticated, clearAccessCode } from './utils/auth.js';
-import { Flame, Sparkles, Zap, Pin, Mic, Star, Clock, Lightbulb, Home, RefreshCw, Settings, X, Plus, Trash2, Scissors, ExternalLink, ChevronDown, ChevronUp, Mail, Loader2, TrendingDown } from 'lucide-react';
+import { Flame, Sparkles, Zap, Pin, Mic, Star, Clock, Lightbulb, Home, RefreshCw, Settings, X, Plus, Trash2, Scissors, ExternalLink, ChevronDown, ChevronUp, Mail, Loader2, TrendingDown, CheckSquare, CheckCircle2, Copy } from 'lucide-react';
 
 // ========================================
 // SKELETON LOADING COMPONENTS
@@ -208,8 +217,18 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
   const [streak, setStreak] = useState(0);
   const [focusProduct, setFocusProduct] = useState(null);
   const [recentDrafts, setRecentDrafts] = useState([]);
-  const [activeLibraryTab, setActiveLibraryTab] = useState('history');
   const [isLibraryExpanded, setIsLibraryExpanded] = useState(true);
+  
+  // Library workflow queue states
+  const [activeLibraryTab, setActiveLibraryTab] = useState('history');
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState({
+    drafts: [],
+    favorites: [],
+    clips: []
+  });
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedItemForModal, setSelectedItemForModal] = useState(null);
   
   // Modal states
   const [showPinModal, setShowPinModal] = useState(false);
@@ -354,6 +373,403 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
     onNavigate('inspiration');
   };
 
+  // Library workflow queue handlers
+  const toggleMultiSelectMode = () => {
+    setMultiSelectMode(!multiSelectMode);
+    if (multiSelectMode) {
+      // Clear selections when exiting multi-select
+      setSelectedItems({ drafts: [], favorites: [], clips: [] });
+    }
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveLibraryTab(tab);
+    // Clear selections when switching tabs
+    setSelectedItems({ drafts: [], favorites: [], clips: [] });
+    setMultiSelectMode(false);
+  };
+
+  const handleItemSelect = (itemId) => {
+    if (!multiSelectMode) return;
+    setSelectedItems(prev => {
+      const newSelections = { ...prev };
+      const sectionKey = activeLibraryTab === 'history' ? 'drafts' : activeLibraryTab === 'favorites' ? 'favorites' : 'clips';
+      if (newSelections[sectionKey].includes(itemId)) {
+        newSelections[sectionKey] = newSelections[sectionKey].filter(id => id !== itemId);
+      } else {
+        newSelections[sectionKey] = [...newSelections[sectionKey], itemId];
+      }
+      return newSelections;
+    });
+  };
+
+  const handleBulkDelete = () => {
+    const sectionKey = activeLibraryTab === 'history' ? 'drafts' : activeLibraryTab === 'favorites' ? 'favorites' : 'clips';
+    const selected = selectedItems[sectionKey];
+    if (selected.length === 0) return;
+
+    if (!window.confirm(`Delete ${selected.length} selected item(s)?`)) return;
+
+    let success = false;
+    if (activeLibraryTab === 'history') {
+      success = bulkDeleteDrafts(selected);
+    } else if (activeLibraryTab === 'favorites') {
+      success = bulkDeleteFavorites(selected);
+    } else if (activeLibraryTab === 'clips') {
+      success = bulkDeleteIdeaClips(selected);
+    }
+
+    if (success) {
+      setRecentDrafts(getRecentDrafts());
+      setSelectedItems({ drafts: [], favorites: [], clips: [] });
+      setMultiSelectMode(false);
+    }
+  };
+
+  const handleToggleFavorite = (item, itemType) => {
+    const content = itemType === 'clip' ? item.text : item.content;
+    if (isFavorited(content)) {
+      const favoriteId = getFavoriteIdByContent(content);
+      if (favoriteId) {
+        deleteFavorite(favoriteId);
+      }
+    } else {
+      saveFavorite(content, item.type || 'Content', item.metadata || {});
+    }
+    setRecentDrafts(getRecentDrafts());
+  };
+
+  const handleQuickDelete = (itemId, itemType) => {
+    if (!window.confirm('Delete this item?')) return;
+    let success = false;
+    if (itemType === 'draft') {
+      success = bulkDeleteDrafts([itemId]);
+    } else if (itemType === 'favorite') {
+      success = bulkDeleteFavorites([itemId]);
+    } else if (itemType === 'clip') {
+      success = bulkDeleteIdeaClips([itemId]);
+    }
+    if (success) {
+      setRecentDrafts(getRecentDrafts());
+    }
+  };
+
+  const openDetailModal = (item, itemType) => {
+    setSelectedItemForModal({ ...item, itemType });
+    setDetailModalOpen(true);
+  };
+
+  const closeDetailModal = () => {
+    setDetailModalOpen(false);
+    setSelectedItemForModal(null);
+    // Refresh data after closing modal
+    setRecentDrafts(getRecentDrafts());
+  };
+
+  // Refresh modal item data
+  const refreshModalItem = (itemType) => {
+    if (!selectedItemForModal) return;
+    let refreshedItem = null;
+    if (itemType === 'draft') {
+      const drafts = getRecentDrafts();
+      refreshedItem = drafts.find(d => d.id === selectedItemForModal.id);
+    } else if (itemType === 'favorite') {
+      const favorites = getFavorites();
+      refreshedItem = favorites.find(f => f.id === selectedItemForModal.id);
+    } else if (itemType === 'clip') {
+      const clips = getRemixQueue();
+      refreshedItem = clips.find(c => c.id === selectedItemForModal.id);
+    }
+    if (refreshedItem) {
+      setSelectedItemForModal({ ...refreshedItem, itemType });
+    }
+  };
+
+  const handleSaveItemContent = (itemId, itemType, newContent) => {
+    let success = false;
+    if (itemType === 'draft') {
+      success = updateDraftContent(itemId, newContent);
+    } else if (itemType === 'favorite') {
+      success = updateFavoriteContent(itemId, newContent);
+    } else if (itemType === 'clip') {
+      success = updateIdeaClipContent(itemId, newContent);
+    }
+    if (success && selectedItemForModal) {
+      setSelectedItemForModal({ ...selectedItemForModal, content: newContent, text: newContent });
+      setRecentDrafts(getRecentDrafts());
+    }
+  };
+
+  const handleTogglePosted = (itemId, itemType, posted) => {
+    let success = false;
+    if (itemType === 'draft') {
+      success = markDraftAsPosted(itemId, posted);
+    } else if (itemType === 'favorite') {
+      success = markFavoriteAsPosted(itemId, posted);
+    } else if (itemType === 'clip') {
+      success = markIdeaClipAsPosted(itemId, posted);
+    }
+    if (success) {
+      setRecentDrafts(getRecentDrafts());
+      // Refresh modal item to get updated timestamp
+      refreshModalItem(itemType);
+    }
+  };
+
+  const handleDeleteItem = (itemId, itemType) => {
+    let success = false;
+    if (itemType === 'draft') {
+      success = bulkDeleteDrafts([itemId]);
+    } else if (itemType === 'favorite') {
+      success = bulkDeleteFavorites([itemId]);
+    } else if (itemType === 'clip') {
+      success = bulkDeleteIdeaClips([itemId]);
+    }
+    if (success) {
+      closeDetailModal();
+      setRecentDrafts(getRecentDrafts());
+    }
+  };
+
+  // Detail Card Modal Component
+  const DetailCardModal = ({ isOpen, onClose, item, itemType, onSaveContent, onTogglePosted, onDelete, onNavigate }) => {
+    const [editedContent, setEditedContent] = useState('');
+    const [posted, setPosted] = useState(false);
+    const [postedTimestamp, setPostedTimestamp] = useState(null);
+    const [hasChanges, setHasChanges] = useState(false);
+    const [saveTimeout, setSaveTimeout] = useState(null);
+
+    useEffect(() => {
+      if (item) {
+        const content = itemType === 'clip' ? item.text : item.content;
+        setEditedContent(content);
+        setPosted(item.posted || false);
+        setPostedTimestamp(item.postedTimestamp || null);
+        setHasChanges(false);
+      }
+      return () => {
+        if (saveTimeout) {
+          clearTimeout(saveTimeout);
+        }
+      };
+    }, [item, itemType, saveTimeout]);
+
+    if (!isOpen || !item) return null;
+
+    const content = itemType === 'clip' ? item.text : item.content;
+    const handleSave = () => {
+      if (editedContent.trim() && editedContent.trim() !== content) {
+        onSaveContent(item.id, itemType, editedContent.trim());
+        setHasChanges(false);
+      }
+    };
+
+    const handleContentChange = (e) => {
+      const newContent = e.target.value;
+      setEditedContent(newContent);
+      setHasChanges(newContent !== content);
+      
+      // Clear existing timeout
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
+      }
+      
+      // Set new debounced save
+      const timeout = setTimeout(() => {
+        if (newContent.trim() && newContent.trim() !== content) {
+          handleSave();
+        }
+      }, 1000); // 1 second debounce
+      
+      setSaveTimeout(timeout);
+    };
+
+    const handleBlur = () => {
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
+        setSaveTimeout(null);
+      }
+      handleSave();
+    };
+
+    const handleCopy = async () => {
+      const success = await copyToClipboard(editedContent);
+      if (success) {
+        const platform = item.metadata?.platform || null;
+        const product = item.metadata?.product || null;
+        trackAnalytics('copied', editedContent, item.type || 'Unknown', platform, product);
+      }
+    };
+
+    const handleRemix = () => {
+      onNavigate('transform', { preFilledText: editedContent });
+      onClose();
+    };
+
+    const handleOpenGmail = () => {
+      const subject = encodeURIComponent('RockMa Content');
+      const body = encodeURIComponent(editedContent);
+      window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank', 'noopener,noreferrer');
+    };
+
+    const handleOpenTikTok = async () => {
+      await copyToClipboard(editedContent);
+      window.open('https://www.tiktok.com/upload', '_blank', 'noopener,noreferrer');
+    };
+
+    // Extract platform and audience
+    const getPlatform = () => {
+      if (itemType === 'clip') {
+        const platformMap = {
+          'format_linkedin_sales': 'LinkedIn',
+          'format_email_newsletter': 'Email',
+          'format_tiktok_visual': 'TikTok',
+          'general_rewrite': null
+        };
+        return platformMap[item.intent] || null;
+      }
+      return item.metadata?.platform || null;
+    };
+
+    const getAudience = () => {
+      return item.metadata?.audience || null;
+    };
+
+    const platform = getPlatform();
+    const audience = getAudience();
+    const hasPlatform = platform || (itemType === 'clip' && item.intent);
+
+    const formatTimestamp = (timestamp) => {
+      if (!timestamp) return null;
+      const date = new Date(timestamp);
+      return date.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    };
+
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} title="Content Details">
+        <div className="space-y-4">
+          {/* Metadata Header */}
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center gap-4 text-sm">
+              {platform && (
+                <div>
+                  <span className="text-amber-200/60">Platform: </span>
+                  <span className="text-amber-300 font-semibold">{platform}</span>
+                </div>
+              )}
+              {audience && (
+                <div>
+                  <span className="text-amber-200/60">Audience: </span>
+                  <span className="text-amber-300 font-semibold">{audience}</span>
+                </div>
+              )}
+            </div>
+            <time className="text-amber-200/50 text-xs block">
+              Created: {new Date(item.timestamp).toLocaleDateString()}
+            </time>
+          </div>
+
+          {/* Editable Content Area */}
+          <div>
+            <label className="block text-sm font-medium text-amber-100 mb-2">
+              Content
+            </label>
+            <textarea
+              value={editedContent}
+              onChange={handleContentChange}
+              onBlur={handleBlur}
+              className="w-full px-4 py-3 bg-zinc-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-400 min-h-[200px] resize-y"
+              placeholder="Edit content..."
+            />
+            {hasChanges && (
+              <p className="mt-2 text-xs text-amber-200/60">Changes will auto-save...</p>
+            )}
+          </div>
+
+          {/* Posted Status Toggle */}
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={posted}
+                onChange={(e) => {
+                  const isPosted = e.target.checked;
+                  setPosted(isPosted);
+                  onTogglePosted(item.id, itemType, isPosted);
+                }}
+                className="w-4 h-4 text-amber-400 bg-zinc-800 border-gray-700 rounded focus:ring-amber-400"
+              />
+              <span className="text-sm text-amber-100">Posted</span>
+              {posted && postedTimestamp && (
+                <span className="text-xs text-amber-200/60">
+                  {formatTimestamp(postedTimestamp)}
+                </span>
+              )}
+            </label>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-2 pt-4 border-t border-amber-900/40">
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-amber-100 rounded-lg text-sm font-semibold transition-colors"
+            >
+              <Copy className="w-4 h-4" />
+              Copy
+            </button>
+            <button
+              onClick={handleRemix}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-400 hover:bg-amber-500 text-gray-900 rounded-lg text-sm font-semibold transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Remix
+            </button>
+            {hasPlatform && (
+              <>
+                {(item.metadata?.platform === 'Email' || item.intent === 'format_email_newsletter') && (
+                  <button
+                    onClick={handleOpenGmail}
+                    className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-amber-100 rounded-lg text-sm font-semibold transition-colors border border-amber-400/30"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Open Gmail
+                  </button>
+                )}
+                {(item.metadata?.platform === 'TikTok' || item.intent === 'format_tiktok_visual') && (
+                  <button
+                    onClick={handleOpenTikTok}
+                    className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-amber-100 rounded-lg text-sm font-semibold transition-colors border border-amber-400/30"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open TikTok
+                  </button>
+                )}
+              </>
+            )}
+            <button
+              onClick={() => {
+                if (window.confirm('Delete this item?')) {
+                  onDelete(item.id, itemType);
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-400 rounded-lg text-sm font-semibold transition-colors border border-red-700/30"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
+    );
+  };
+
   return (
     <div className="text-amber-50">
       {/* Welcome Header */}
@@ -452,7 +868,7 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
       {/* Strategy Dashboard / Business Insights */}
       <StrategyDashboard onBoostProduct={handleBoostProduct} />
 
-      {/* Section 3: Library */}
+      {/* Section 3: Library - Tabbed Interface */}
       <div className="p-6 bg-zinc-900 rounded-lg border border-amber-900/40">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-amber-300">Library</h3>
@@ -470,239 +886,338 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
         </div>
         
         {isLibraryExpanded && (
-          <>
-            {/* Tab Buttons */}
+          <div>
+            {/* Tab Navigation */}
             <div className="flex gap-2 mb-4 border-b border-amber-900/40">
-          <button
-            onClick={() => setActiveLibraryTab('history')}
-            className={`px-4 py-2 text-sm font-semibold transition-all duration-200 ${
-              activeLibraryTab === 'history'
-                ? 'text-amber-400 border-b-2 border-amber-400'
-                : 'text-amber-100/60 hover:text-amber-100'
-            }`}
-          >
-            Recent History
-          </button>
-          <button
-            onClick={() => setActiveLibraryTab('favorites')}
-            className={`px-4 py-2 text-sm font-semibold transition-all duration-200 ${
-              activeLibraryTab === 'favorites'
-                ? 'text-amber-400 border-b-2 border-amber-400'
-                : 'text-amber-100/60 hover:text-amber-100'
-            }`}
-          >
-            Remix Favorites
-          </button>
-          <button
-            onClick={() => setActiveLibraryTab('clips')}
-            className={`px-4 py-2 text-sm font-semibold transition-all duration-200 ${
-              activeLibraryTab === 'clips'
-                ? 'text-amber-400 border-b-2 border-amber-400'
-                : 'text-amber-100/60 hover:text-amber-100'
-            }`}
-          >
-            Idea Clips
-          </button>
-        </div>
+              <button
+                onClick={() => handleTabChange('history')}
+                className={`px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                  activeLibraryTab === 'history'
+                    ? 'text-amber-400 border-b-2 border-amber-400'
+                    : 'text-amber-100/60 hover:text-amber-100'
+                }`}
+              >
+                Recent History
+              </button>
+              <button
+                onClick={() => handleTabChange('favorites')}
+                className={`px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                  activeLibraryTab === 'favorites'
+                    ? 'text-amber-400 border-b-2 border-amber-400'
+                    : 'text-amber-100/60 hover:text-amber-100'
+                }`}
+              >
+                Favorites
+              </button>
+              <button
+                onClick={() => handleTabChange('clips')}
+                className={`px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                  activeLibraryTab === 'clips'
+                    ? 'text-amber-400 border-b-2 border-amber-400'
+                    : 'text-amber-100/60 hover:text-amber-100'
+                }`}
+              >
+                Idea Clips
+              </button>
+            </div>
 
-        {/* Tab Content */}
-        {activeLibraryTab === 'history' && (
-          <div>
-            {recentDrafts.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-amber-200/60 text-sm">No drafts yet. Generate some content to see it here!</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {recentDrafts.slice(0, 5).map((draft) => (
-                  <article
-                    key={draft.id}
-                    className="p-4 bg-zinc-800 rounded-lg border border-amber-900/30 hover:border-amber-500/40 transition-all duration-200"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="px-2 py-1 bg-amber-900/40 text-amber-300 text-xs font-semibold rounded">
-                            {draft.type}
-                          </span>
-                          <time className="text-amber-200/50 text-xs">
-                            {new Date(draft.timestamp).toLocaleDateString()}
-                          </time>
-                        </div>
-                        <p className="text-amber-100 text-sm truncate">
-                          {draft.snippet}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <StarButton 
-                          content={draft.content}
-                          type={draft.type}
-                          metadata={draft.metadata || {}}
-                          onStarred={() => {
-                            // Refresh drafts to update UI
-                            setRecentDrafts(getRecentDrafts());
-                          }}
-                        />
-                        <button
-                          onClick={() => handleCopyDraft(draft.content, draft)}
-                          className="flex-shrink-0 p-2 bg-zinc-700 hover:bg-zinc-600 text-amber-100 rounded transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-400/50"
-                          aria-label={`Copy ${draft.type} content`}
-                          title="Copy to clipboard"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeLibraryTab === 'favorites' && (
-          <div>
-            {getFavorites().length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-amber-200/60 text-sm">No favorites yet. Star content from any feature to save it!</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {getFavorites().map((fav) => (
-                  <article
-                    key={fav.id}
-                    className="p-4 bg-zinc-800 rounded-lg border border-amber-900/30 hover:border-amber-500/40 transition-all duration-200"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="px-2 py-1 bg-amber-900/40 text-amber-300 text-xs font-semibold rounded">
-                            {fav.type}
-                          </span>
-                          <time className="text-amber-200/50 text-xs">
-                            {new Date(fav.timestamp).toLocaleDateString()}
-                          </time>
-                        </div>
-                        <p className="text-amber-100 text-sm line-clamp-2">
-                          {fav.snippet}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => {
-                          // Navigate to translator with pre-filled content
-                          onNavigate('translator', { preFilledText: fav.content });
-                        }}
-                        className="flex-shrink-0 px-3 py-2 bg-amber-400 hover:bg-amber-500 text-gray-900 rounded font-semibold text-xs transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-400/50"
-                        aria-label={`Remix ${fav.type}`}
-                        title="Remix this favorite"
-                      >
-                        Remix
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeLibraryTab === 'clips' && (
-          <div>
-            {getRemixQueue().length === 0 ? (
-              <div className="text-center py-8">
-                <Scissors className="w-12 h-12 text-amber-400/40 mx-auto mb-3" />
-                <p className="text-amber-100 font-semibold mb-2">No Ideas Clipped Yet</p>
-                <p className="text-amber-200/60 text-sm max-w-xs mx-auto">Use the Clip button above to capture content from competitors or save inspiration for later.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {getRemixQueue().map((clip) => {
-                  // Helper function to get intent badge colors
-                  const getIntentBadge = (intent) => {
-                    const badges = {
-                      'format_linkedin_sales': { bg: 'bg-blue-900/40', text: 'text-blue-300', label: 'LinkedIn' },
-                      'format_email_newsletter': { bg: 'bg-purple-900/40', text: 'text-purple-300', label: 'Email' },
-                      'format_tiktok_visual': { bg: 'bg-pink-900/40', text: 'text-pink-300', label: 'TikTok' },
-                      'general_rewrite': { bg: 'bg-amber-900/40', text: 'text-amber-300', label: 'General' }
-                    };
-                    return badges[intent] || badges['general_rewrite'];
-                  };
-
-                  const badge = getIntentBadge(clip.intent);
-
-                  return (
-                    <article
-                      key={clip.id}
-                      className="p-4 bg-zinc-800 rounded-lg border border-amber-900/30 hover:border-amber-500/40 transition-all duration-200"
+            {/* Multi-Select Mode Toggle & Bulk Actions */}
+            <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg border border-amber-900/30 mb-4">
+              <button
+                onClick={toggleMultiSelectMode}
+                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-amber-100 rounded text-sm font-semibold transition-colors"
+              >
+                <CheckSquare className="w-4 h-4" />
+                {multiSelectMode ? 'Exit Select Mode' : 'Select Multiple'}
+              </button>
+              {multiSelectMode && (() => {
+                const sectionKey = activeLibraryTab === 'history' ? 'drafts' : activeLibraryTab === 'favorites' ? 'favorites' : 'clips';
+                const selectedCount = selectedItems[sectionKey].length;
+                return selectedCount > 0 ? (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-amber-200/60">
+                      {selectedCount} selected
+                    </span>
+                    <button
+                      onClick={handleBulkDelete}
+                      className="px-3 py-1.5 bg-red-900/30 hover:bg-red-900/50 text-red-400 rounded text-sm font-semibold transition-colors border border-red-700/30"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <span className={`px-2 py-1 ${badge.bg} ${badge.text} text-xs font-semibold rounded`}>
-                              {badge.label}
-                            </span>
-                            {clip.url && (
-                              <a 
-                                href={clip.url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-amber-400 hover:text-amber-300 transition-colors"
-                                title="View source"
-                              >
-                                <ExternalLink className="w-3 h-3" />
-                              </a>
+                      Delete Selected
+                    </button>
+                  </div>
+                ) : null;
+              })()}
+            </div>
+
+            {/* Tab Content */}
+            {activeLibraryTab === 'history' && (
+              <div>
+                {recentDrafts.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-amber-200/60 text-sm">No drafts yet. Generate some content to see it here!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {recentDrafts.map((draft) => {
+                      const content = draft.content;
+                      const isFav = isFavorited(content);
+                      return (
+                        <article
+                          key={draft.id}
+                          onClick={() => !multiSelectMode && openDetailModal(draft, 'draft')}
+                          className={`p-3 bg-zinc-800 rounded-lg border border-amber-900/30 hover:border-amber-500/40 transition-all duration-200 ${
+                            multiSelectMode ? 'cursor-default' : 'cursor-pointer'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {multiSelectMode && (
+                              <input
+                                type="checkbox"
+                                checked={selectedItems.drafts.includes(draft.id)}
+                                onChange={() => handleItemSelect(draft.id)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-4 h-4 text-amber-400 bg-zinc-800 border-gray-700 rounded focus:ring-amber-400"
+                              />
                             )}
-                            <time className="text-amber-200/50 text-xs">
-                              {new Date(clip.timestamp).toLocaleDateString()}
-                            </time>
+                            <div className="flex-1 min-w-0 flex items-center gap-3">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                {draft.posted && (
+                                  <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                                )}
+                                <time className="text-amber-200/50 text-xs whitespace-nowrap">
+                                  {new Date(draft.timestamp).toLocaleDateString()}
+                                </time>
+                                <p className="text-amber-100 text-sm truncate">
+                                  {draft.snippet}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleFavorite(draft, 'draft');
+                                }}
+                                className={`p-1.5 rounded transition-colors ${
+                                  isFav ? 'text-amber-400' : 'text-gray-400 hover:text-amber-400'
+                                }`}
+                                title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+                              >
+                                <Star className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleQuickDelete(draft.id, 'draft');
+                                }}
+                                className="p-1.5 text-gray-400 hover:text-red-400 rounded transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onNavigate('transform', { preFilledText: draft.content });
+                                }}
+                                className="px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-gray-900 rounded text-xs font-semibold transition-all duration-200"
+                                title="Remix"
+                              >
+                                Remix
+                              </button>
+                            </div>
                           </div>
-                          <p className="text-amber-100 text-sm line-clamp-2 mb-1">
-                            {clip.snippet}
-                          </p>
-                          {clip.notes && (
-                            <p className="text-amber-200/60 text-xs italic">
-                              "{clip.notes}"
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              onNavigate('transform', { preFilledIdeaId: clip.id });
-                            }}
-                            className="flex-shrink-0 px-3 py-2 bg-amber-400 hover:bg-amber-500 text-gray-900 rounded font-semibold text-xs transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-400/50 whitespace-nowrap"
-                            aria-label="Load to Transform"
-                            title="Load in Transformer"
-                          >
-                            Load
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (deleteIdeaClip(clip.id)) {
-                                // Force re-render by setting tab again
-                                setActiveLibraryTab('clips');
-                              }
-                            }}
-                            className="flex-shrink-0 p-2 hover:bg-red-900/30 rounded transition-colors"
-                            aria-label="Delete clip"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-400" />
-                          </button>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeLibraryTab === 'favorites' && (
+              <div>
+                {getFavorites().length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-amber-200/60 text-sm">No favorites yet. Star content from any feature to save it!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {getFavorites().map((fav) => {
+                      const content = fav.content;
+                      return (
+                        <article
+                          key={fav.id}
+                          onClick={() => !multiSelectMode && openDetailModal(fav, 'favorite')}
+                          className={`p-3 bg-zinc-800 rounded-lg border border-amber-900/30 hover:border-amber-500/40 transition-all duration-200 ${
+                            multiSelectMode ? 'cursor-default' : 'cursor-pointer'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {multiSelectMode && (
+                              <input
+                                type="checkbox"
+                                checked={selectedItems.favorites.includes(fav.id)}
+                                onChange={() => handleItemSelect(fav.id)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-4 h-4 text-amber-400 bg-zinc-800 border-gray-700 rounded focus:ring-amber-400"
+                              />
+                            )}
+                            <div className="flex-1 min-w-0 flex items-center gap-3">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                {fav.posted && (
+                                  <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                                )}
+                                <time className="text-amber-200/50 text-xs whitespace-nowrap">
+                                  {new Date(fav.timestamp).toLocaleDateString()}
+                                </time>
+                                <p className="text-amber-100 text-sm truncate">
+                                  {fav.snippet}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleFavorite(fav, 'favorite');
+                                }}
+                                className="p-1.5 text-amber-400 rounded transition-colors"
+                                title="Remove from favorites"
+                              >
+                                <Star className="w-4 h-4 fill-current" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleQuickDelete(fav.id, 'favorite');
+                                }}
+                                className="p-1.5 text-gray-400 hover:text-red-400 rounded transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onNavigate('transform', { preFilledText: fav.content });
+                                }}
+                                className="px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-gray-900 rounded text-xs font-semibold transition-all duration-200"
+                                title="Remix"
+                              >
+                                Remix
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeLibraryTab === 'clips' && (
+              <div>
+                {getRemixQueue().length === 0 ? (
+                  <div className="text-center py-8">
+                    <Scissors className="w-12 h-12 text-amber-400/40 mx-auto mb-3" />
+                    <p className="text-amber-100 font-semibold mb-2">No Ideas Clipped Yet</p>
+                    <p className="text-amber-200/60 text-sm max-w-xs mx-auto">Use the Clip button above to capture content from competitors or save inspiration for later.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {getRemixQueue().map((clip) => {
+                      const content = clip.text;
+                      const isFav = isFavorited(content);
+                      return (
+                        <article
+                          key={clip.id}
+                          onClick={() => !multiSelectMode && openDetailModal(clip, 'clip')}
+                          className={`p-3 bg-zinc-800 rounded-lg border border-amber-900/30 hover:border-amber-500/40 transition-all duration-200 ${
+                            multiSelectMode ? 'cursor-default' : 'cursor-pointer'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {multiSelectMode && (
+                              <input
+                                type="checkbox"
+                                checked={selectedItems.clips.includes(clip.id)}
+                                onChange={() => handleItemSelect(clip.id)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-4 h-4 text-amber-400 bg-zinc-800 border-gray-700 rounded focus:ring-amber-400"
+                              />
+                            )}
+                            <div className="flex-1 min-w-0 flex items-center gap-3">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                {clip.posted && (
+                                  <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                                )}
+                                <time className="text-amber-200/50 text-xs whitespace-nowrap">
+                                  {new Date(clip.timestamp).toLocaleDateString()}
+                                </time>
+                                <p className="text-amber-100 text-sm truncate">
+                                  {clip.snippet}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleFavorite(clip, 'clip');
+                                }}
+                                className={`p-1.5 rounded transition-colors ${
+                                  isFav ? 'text-amber-400' : 'text-gray-400 hover:text-amber-400'
+                                }`}
+                                title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+                              >
+                                <Star className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleQuickDelete(clip.id, 'clip');
+                                }}
+                                className="p-1.5 text-gray-400 hover:text-red-400 rounded transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onNavigate('transform', { preFilledIdeaId: clip.id });
+                                }}
+                                className="px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-gray-900 rounded text-xs font-semibold transition-all duration-200"
+                                title="Load in Transformer"
+                              >
+                                Load
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-          </>
         )}
       </div>
+
+      {/* Detail Card Modal */}
+      <DetailCardModal
+        isOpen={detailModalOpen}
+        onClose={closeDetailModal}
+        item={selectedItemForModal}
+        itemType={selectedItemForModal?.itemType}
+        onSaveContent={handleSaveItemContent}
+        onTogglePosted={handleTogglePosted}
+        onDelete={handleDeleteItem}
+        onNavigate={onNavigate}
+      />
 
       {/* Clip Idea Modal */}
       <Modal isOpen={showPinModal} onClose={() => setShowPinModal(false)} title="Clip an Idea">
@@ -2098,7 +2613,6 @@ function App() {
               src="/LOGO2.png" 
               alt="RockMa Logo" 
               className="h-28 drop-shadow-[0_0_25px_rgba(251,191,36,0.5)] hover:drop-shadow-[0_0_35px_rgba(251,191,36,0.7)] transition-all duration-300"
-              style={{ mixBlendMode: 'screen' }}
             />
           </div>
           

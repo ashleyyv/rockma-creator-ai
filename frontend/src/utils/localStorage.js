@@ -131,6 +131,7 @@ export function saveRecentDraft(type, content, metadata = {}) {
       metadata,
       timestamp: new Date().toISOString(),
       snippet: content.substring(0, 50) + (content.length > 50 ? '...' : ''),
+      posted: false,
     };
 
     // Add to beginning of array
@@ -153,7 +154,13 @@ export function saveRecentDraft(type, content, metadata = {}) {
 export function getRecentDrafts() {
   try {
     const draftsJson = localStorage.getItem(STORAGE_KEYS.RECENT_DRAFTS);
-    return draftsJson ? JSON.parse(draftsJson) : [];
+    const drafts = draftsJson ? JSON.parse(draftsJson) : [];
+    // Ensure posted property exists (for backward compatibility)
+    return drafts.map(draft => ({
+      ...draft,
+      posted: draft.posted !== undefined ? draft.posted : false,
+      postedTimestamp: draft.postedTimestamp || null
+    }));
   } catch (error) {
     console.error('Error getting drafts:', error);
     return [];
@@ -202,6 +209,7 @@ export function saveFavorite(content, type, metadata = {}) {
       metadata,
       timestamp: new Date().toISOString(),
       snippet: content.substring(0, 60) + (content.length > 60 ? '...' : ''),
+      posted: false,
     };
 
     favorites.unshift(newFav);
@@ -221,7 +229,13 @@ export function saveFavorite(content, type, metadata = {}) {
 export function getFavorites() {
   try {
     const favsJson = localStorage.getItem(STORAGE_KEYS.FAVORITES);
-    return favsJson ? JSON.parse(favsJson) : [];
+    const favorites = favsJson ? JSON.parse(favsJson) : [];
+    // Ensure posted property exists (for backward compatibility)
+    return favorites.map(fav => ({
+      ...fav,
+      posted: fav.posted !== undefined ? fav.posted : false,
+      postedTimestamp: fav.postedTimestamp || null
+    }));
   } catch (error) {
     console.error('Error getting favorites:', error);
     return [];
@@ -287,6 +301,7 @@ export function saveIdeaClip(text, url = '', intent = 'general_rewrite', notes =
       notes: notes.trim(),
       timestamp: new Date().toISOString(),
       snippet: text.substring(0, 60) + (text.length > 60 ? '...' : ''),
+      posted: false,
     };
 
     // Add to beginning of array
@@ -310,7 +325,13 @@ export function saveIdeaClip(text, url = '', intent = 'general_rewrite', notes =
 export function getRemixQueue() {
   try {
     const queueJson = localStorage.getItem(STORAGE_KEYS.REMIX_QUEUE);
-    return queueJson ? JSON.parse(queueJson) : [];
+    const queue = queueJson ? JSON.parse(queueJson) : [];
+    // Ensure posted property exists (for backward compatibility)
+    return queue.map(clip => ({
+      ...clip,
+      posted: clip.posted !== undefined ? clip.posted : false,
+      postedTimestamp: clip.postedTimestamp || null
+    }));
   } catch (error) {
     console.error('Error getting remix queue:', error);
     return [];
@@ -359,6 +380,193 @@ export function clearRemixQueue() {
     return true;
   } catch (error) {
     console.error('Error clearing remix queue:', error);
+    return false;
+  }
+}
+
+// ========================================
+// CONTENT UPDATE & POSTED STATUS FUNCTIONS
+// ========================================
+
+/**
+ * Update content for a specific draft
+ * @param {string} id - Draft ID
+ * @param {string} newContent - New content text
+ * @returns {boolean} Success status
+ */
+export function updateDraftContent(id, newContent) {
+  try {
+    const drafts = getRecentDrafts();
+    const draftIndex = drafts.findIndex(d => d.id === id);
+    if (draftIndex === -1) return false;
+    
+    drafts[draftIndex].content = newContent;
+    drafts[draftIndex].snippet = newContent.substring(0, 50) + (newContent.length > 50 ? '...' : '');
+    localStorage.setItem(STORAGE_KEYS.RECENT_DRAFTS, JSON.stringify(drafts));
+    return true;
+  } catch (error) {
+    console.error('Error updating draft content:', error);
+    return false;
+  }
+}
+
+/**
+ * Update content for a specific favorite
+ * @param {string} id - Favorite ID
+ * @param {string} newContent - New content text
+ * @returns {boolean} Success status
+ */
+export function updateFavoriteContent(id, newContent) {
+  try {
+    const favorites = getFavorites();
+    const favIndex = favorites.findIndex(f => f.id === id);
+    if (favIndex === -1) return false;
+    
+    favorites[favIndex].content = newContent;
+    favorites[favIndex].snippet = newContent.substring(0, 60) + (newContent.length > 60 ? '...' : '');
+    localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favorites));
+    return true;
+  } catch (error) {
+    console.error('Error updating favorite content:', error);
+    return false;
+  }
+}
+
+/**
+ * Update content for a specific idea clip
+ * @param {string} id - Clip ID
+ * @param {string} newContent - New content text
+ * @returns {boolean} Success status
+ */
+export function updateIdeaClipContent(id, newContent) {
+  try {
+    const queue = getRemixQueue();
+    const clipIndex = queue.findIndex(c => c.id === id);
+    if (clipIndex === -1) return false;
+    
+    queue[clipIndex].text = newContent.trim();
+    queue[clipIndex].snippet = newContent.substring(0, 60) + (newContent.length > 60 ? '...' : '');
+    localStorage.setItem(STORAGE_KEYS.REMIX_QUEUE, JSON.stringify(queue));
+    return true;
+  } catch (error) {
+    console.error('Error updating idea clip content:', error);
+    return false;
+  }
+}
+
+/**
+ * Mark draft as posted or unposted
+ * @param {string} id - Draft ID
+ * @param {boolean} posted - Posted status
+ * @returns {boolean} Success status
+ */
+export function markDraftAsPosted(id, posted) {
+  try {
+    const drafts = getRecentDrafts();
+    const draftIndex = drafts.findIndex(d => d.id === id);
+    if (draftIndex === -1) return false;
+    
+    drafts[draftIndex].posted = posted;
+    drafts[draftIndex].postedTimestamp = posted ? new Date().toISOString() : null;
+    localStorage.setItem(STORAGE_KEYS.RECENT_DRAFTS, JSON.stringify(drafts));
+    return true;
+  } catch (error) {
+    console.error('Error marking draft as posted:', error);
+    return false;
+  }
+}
+
+/**
+ * Mark favorite as posted or unposted
+ * @param {string} id - Favorite ID
+ * @param {boolean} posted - Posted status
+ * @returns {boolean} Success status
+ */
+export function markFavoriteAsPosted(id, posted) {
+  try {
+    const favorites = getFavorites();
+    const favIndex = favorites.findIndex(f => f.id === id);
+    if (favIndex === -1) return false;
+    
+    favorites[favIndex].posted = posted;
+    favorites[favIndex].postedTimestamp = posted ? new Date().toISOString() : null;
+    localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favorites));
+    return true;
+  } catch (error) {
+    console.error('Error marking favorite as posted:', error);
+    return false;
+  }
+}
+
+/**
+ * Mark idea clip as posted or unposted
+ * @param {string} id - Clip ID
+ * @param {boolean} posted - Posted status
+ * @returns {boolean} Success status
+ */
+export function markIdeaClipAsPosted(id, posted) {
+  try {
+    const queue = getRemixQueue();
+    const clipIndex = queue.findIndex(c => c.id === id);
+    if (clipIndex === -1) return false;
+    
+    queue[clipIndex].posted = posted;
+    queue[clipIndex].postedTimestamp = posted ? new Date().toISOString() : null;
+    localStorage.setItem(STORAGE_KEYS.REMIX_QUEUE, JSON.stringify(queue));
+    return true;
+  } catch (error) {
+    console.error('Error marking idea clip as posted:', error);
+    return false;
+  }
+}
+
+/**
+ * Bulk delete multiple drafts by ID array
+ * @param {Array<string>} ids - Array of draft IDs to delete
+ * @returns {boolean} Success status
+ */
+export function bulkDeleteDrafts(ids) {
+  try {
+    const drafts = getRecentDrafts();
+    const filtered = drafts.filter(d => !ids.includes(d.id));
+    localStorage.setItem(STORAGE_KEYS.RECENT_DRAFTS, JSON.stringify(filtered));
+    return true;
+  } catch (error) {
+    console.error('Error bulk deleting drafts:', error);
+    return false;
+  }
+}
+
+/**
+ * Bulk delete multiple favorites by ID array
+ * @param {Array<string>} ids - Array of favorite IDs to delete
+ * @returns {boolean} Success status
+ */
+export function bulkDeleteFavorites(ids) {
+  try {
+    const favorites = getFavorites();
+    const filtered = favorites.filter(f => !ids.includes(f.id));
+    localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(filtered));
+    return true;
+  } catch (error) {
+    console.error('Error bulk deleting favorites:', error);
+    return false;
+  }
+}
+
+/**
+ * Bulk delete multiple idea clips by ID array
+ * @param {Array<string>} ids - Array of clip IDs to delete
+ * @returns {boolean} Success status
+ */
+export function bulkDeleteIdeaClips(ids) {
+  try {
+    const queue = getRemixQueue();
+    const filtered = queue.filter(c => !ids.includes(c.id));
+    localStorage.setItem(STORAGE_KEYS.REMIX_QUEUE, JSON.stringify(filtered));
+    return true;
+  } catch (error) {
+    console.error('Error bulk deleting idea clips:', error);
     return false;
   }
 }

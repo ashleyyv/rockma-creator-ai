@@ -75,14 +75,31 @@ export default function AccessGate({ onAuthenticated }) {
             Exclusive Access Required
           </p>
           <div className="mt-3 flex items-center justify-center gap-2">
-            <div className="h-px w-12 bg-gradient-to-r from-transparent to-amber-500/50"></div>
-            <div className="w-1.5 h-1.5 rounded-full bg-amber-500/70"></div>
-            <div className="h-px w-12 bg-gradient-to-l from-transparent to-amber-500/50"></div>
+            <div className="h-px w-12 bg-gradient-to-r from-transparent via-amber-500/60 to-amber-500/40 access-gate-metallic-divider"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-amber-400 to-yellow-600 shadow-[0_0_8px_rgba(251,191,36,0.6)]"></div>
+            <div className="h-px w-12 bg-gradient-to-l from-transparent via-amber-500/60 to-amber-500/40 access-gate-metallic-divider"></div>
           </div>
         </div>
 
-        {/* Login Card */}
-        <div className={`access-gate-card access-gate-card-glow bg-slate-900/40 backdrop-blur-xl border border-amber-500/20 rounded-2xl p-8 shadow-2xl ${shake ? 'access-gate-shake' : ''}`}>
+        {/* Login Card - Multi-layer glass structure */}
+        <div className={`access-gate-card access-gate-card-glow access-gate-glass-premium relative ${shake ? 'access-gate-shake' : ''}`}>
+          {/* Base layer - Dark semi-transparent background */}
+          <div className="access-gate-glass-base absolute inset-0 rounded-2xl"></div>
+          
+          {/* Middle layer - Frosted glass with backdrop-blur */}
+          <div className="access-gate-glass-frosted absolute inset-0 rounded-2xl"></div>
+          
+          {/* Top layer - Tinted glass overlay */}
+          <div className="access-gate-glass-tinted absolute inset-0 rounded-2xl"></div>
+          
+          {/* Texture overlay */}
+          <div className="access-gate-texture-overlay absolute inset-0 rounded-2xl"></div>
+          
+          {/* Metallic border */}
+          <div className="access-gate-metallic-border absolute inset-0 rounded-2xl"></div>
+          
+          {/* Content container */}
+          <div className="relative z-10 p-8">
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             {/* Access Code Input */}
             <div>
@@ -99,7 +116,7 @@ export default function AccessGate({ onAuthenticated }) {
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="Enter your access code"
-                  className="access-gate-input w-full px-4 py-3.5 pr-12 bg-slate-950/50 border-2 border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/70 focus:ring-4 focus:ring-amber-500/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-base"
+                  className="access-gate-input access-gate-input-glass w-full px-4 py-3.5 pr-12 rounded-xl text-white placeholder-slate-500 focus:outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-base"
                   disabled={loading}
                   autoFocus
                   autoComplete="off"
@@ -111,7 +128,7 @@ export default function AccessGate({ onAuthenticated }) {
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-amber-400 transition-colors duration-200 focus:outline-none focus:text-amber-400"
+                  className="access-gate-icon-metallic absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-amber-400 transition-all duration-200 focus:outline-none focus:text-amber-400"
                   aria-label={showPassword ? "Hide access code" : "Show access code"}
                   tabIndex={0}
                   disabled={loading}
@@ -153,7 +170,7 @@ export default function AccessGate({ onAuthenticated }) {
             <button
               type="submit"
               disabled={loading || !code.trim()}
-              className="access-gate-button w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 font-bold py-4 px-6 rounded-xl hover:from-amber-400 hover:to-yellow-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/40 hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-4 focus:ring-amber-500/50 relative overflow-hidden group text-base tracking-wide"
+              className="access-gate-button access-gate-button-metallic w-full text-slate-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-4 focus:ring-amber-500/50 relative overflow-hidden group text-base tracking-wide"
               aria-label={loading ? "Verifying access code" : "Submit access code"}
             >
               {loading ? (
@@ -178,10 +195,11 @@ export default function AccessGate({ onAuthenticated }) {
           </form>
 
           {/* Help Text */}
-          <div className="mt-8 pt-6 border-t border-slate-700/50">
+          <div className="mt-8 pt-6 border-t border-slate-700/30 access-gate-metallic-divider-top">
             <p className="text-slate-500 text-xs text-center font-light tracking-wide leading-relaxed">
               Need access? Contact your administrator
             </p>
+          </div>
           </div>
         </div>
 

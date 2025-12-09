@@ -22,6 +22,11 @@ PLATFORM_GUIDELINES = {
         "length": "Medium length (2-3 sentences for hook, 3-5 sentences for body)",
         "tone": "Inspirational, aspirational, community-focused"
     },
+    "LinkedIn": {
+        "format": "Professional storytelling. Business value and insights. Personal narrative with business lessons. Strong opening hook.",
+        "length": "Medium to long form (2-3 sentences for hook, 4-6 sentences for body)",
+        "tone": "Professional, authentic, thought-leadership"
+    },
     "Facebook Ad": {
         "format": "Clear value proposition. Strong call-to-action. Benefit-focused. Professional but warm.",
         "length": "Concise but complete (1-2 sentences for hook, 3-4 sentences for body)",
@@ -111,6 +116,32 @@ def translate_content():
         contextual_prompt = get_contextual_prompt(seasonality, pillar)
         contextual_instruction = f"\n\n{contextual_prompt}" if contextual_prompt else ""
         
+        # Determine output format based on platform
+        if platform in ['TikTok', 'Instagram', 'YouTube']:
+            format_instructions = f"""
+FORMAT YOUR RESPONSE AS FOLLOWS:
+
+Hook:
+[Write an attention-grabbing opening line that stops the scroll]
+
+Script:
+[Write the main content/caption here]
+
+Hashtags:
+[Include 5-8 relevant hashtags]"""
+        elif platform == 'Email':
+            format_instructions = """
+FORMAT YOUR RESPONSE AS FOLLOWS:
+
+Subject Line:
+[Write a compelling subject line]
+
+Email Body:
+[Write the full email content with greeting and sign-off]"""
+        else:
+            format_instructions = """
+Return the formatted content ready to post."""
+        
         # Build the prompt for platform/audience translation
         user_prompt = f"""Transform the following RockMa content for {platform} targeting the {audience} audience.
 
@@ -133,7 +164,7 @@ INSTRUCTIONS:
 3. Tailor the messaging to resonate with {audience} values and language
 4. Keep the RockMa differentiators (mom-owned, clean, organic, ethically made in USA)
 5. Ensure the content feels authentic and appropriate for the platform{contextual_instruction}
-6. Return ONLY the translated content, without any additional explanation or formatting."""
+{format_instructions}"""
 
         # Generate translated content using AI
         translated_content = generate_ai_content(user_prompt, temperature=0.7)
