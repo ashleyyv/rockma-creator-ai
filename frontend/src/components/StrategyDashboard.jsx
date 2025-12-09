@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { TrendingUp, TrendingDown, Clock, Video, Linkedin, Mail, AlertCircle } from 'lucide-react';
 import {
   getPlatformDistribution,
@@ -42,15 +42,25 @@ const StrategyDashboard = ({ onBoostProduct }) => {
   const [creativeOutput, setCreativeOutput] = useState(0);
   const [activityData, setActivityData] = useState([]);
 
-  // Refresh data when timeframe changes
-  useEffect(() => {
-    refreshData();
+  const refreshData = useCallback(() => {
+    const platforms = getPlatformDistribution(timeframe);
+    const products = getProductAttention(timeframe);
+    const output = calculateCreativeOutput(timeframe);
+    const activity = getActivityDataByTimeframe(timeframe);
+
+    setPlatformData(platforms);
+    setProductData(products);
+    setCreativeOutput(output);
+    setActivityData(activity);
   }, [timeframe]);
 
-  // Refresh data when component mounts and when window regains focus
+  // Refresh data when timeframe changes or component mounts
   useEffect(() => {
     refreshData();
-    
+  }, [refreshData]);
+
+  // Refresh data when window regains focus
+  useEffect(() => {
     // Refresh when user returns to the tab/window
     const handleFocus = () => {
       refreshData();
@@ -67,19 +77,7 @@ const StrategyDashboard = ({ onBoostProduct }) => {
       window.removeEventListener('focus', handleFocus);
       clearInterval(intervalId);
     };
-  }, []);
-
-  const refreshData = () => {
-    const platforms = getPlatformDistribution(timeframe);
-    const products = getProductAttention(timeframe);
-    const output = calculateCreativeOutput(timeframe);
-    const activity = getActivityDataByTimeframe(timeframe);
-
-    setPlatformData(platforms);
-    setProductData(products);
-    setCreativeOutput(output);
-    setActivityData(activity);
-  };
+  }, [refreshData]);
 
   const handleBoost = (productName) => {
     if (onBoostProduct) {
@@ -124,16 +122,23 @@ const StrategyDashboard = ({ onBoostProduct }) => {
           >
             ↻
           </button>
-          <select
-            value={timeframe}
-            onChange={(e) => setTimeframe(e.target.value)}
-            className="px-3 py-2 bg-zinc-800 border border-amber-900/40 rounded-lg text-amber-100 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
-            aria-label="Select timeframe for analytics"
-          >
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="all">All Time</option>
-          </select>
+          <div>
+            <label htmlFor="timeframe-select" className="sr-only">
+              Select timeframe for analytics
+            </label>
+            <select
+              id="timeframe-select"
+              name="timeframe-select"
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value)}
+              className="px-3 py-2 bg-zinc-800 border border-amber-900/40 rounded-lg text-amber-100 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+              aria-label="Select timeframe for analytics"
+            >
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="all">All Time</option>
+            </select>
+          </div>
         </div>
       </div>
 

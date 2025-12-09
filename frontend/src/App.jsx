@@ -4,7 +4,7 @@ import { copyToClipboard, formatErrorMessage } from './utils/stateHelpers.js';
 import { 
   calculateStreak, 
   getStreak,
-  getProductOfDay, 
+  getProductAttention,
   saveRecentDraft, 
   getRecentDrafts,
   isFirstVisit,
@@ -16,11 +16,20 @@ import {
   saveIdeaClip,
   getRemixQueue,
   deleteIdeaClip,
-  getIdeaClipById
+  getIdeaClipById,
+  trackAnalytics,
+  saveDailyInspirationSession,
+  getDailyInspirationSession,
+  clearDailyInspirationSession,
+  saveTransformSession,
+  getTransformSession,
+  clearTransformSession
 } from './utils/localStorage.js';
 import AccessGate from './components/AccessGate.jsx';
+import StrategyDashboard from './components/StrategyDashboard.jsx';
+import PlatformQuickAccess from './components/PlatformQuickAccess.jsx';
 import { isAuthenticated, clearAccessCode } from './utils/auth.js';
-import { Flame, Sparkles, Zap, Pin, Mic, Star, Clock, Lightbulb, Home, RefreshCw, Settings, X, Plus, Trash2, Scissors, ExternalLink } from 'lucide-react';
+import { Flame, Sparkles, Zap, Pin, Mic, Star, Clock, Lightbulb, Home, RefreshCw, Settings, X, Plus, Trash2, Scissors, ExternalLink, ChevronDown, ChevronUp, Mail, Loader2, TrendingDown } from 'lucide-react';
 
 // ========================================
 // SKELETON LOADING COMPONENTS
@@ -49,6 +58,14 @@ const SkeletonText = () => (
     <div className="h-4 w-full bg-zinc-800 rounded"></div>
     <div className="h-4 w-full bg-zinc-800 rounded"></div>
     <div className="h-4 w-3/4 bg-zinc-800 rounded"></div>
+  </div>
+);
+
+// Loading Spinner Component
+const LoadingSpinner = ({ message = 'Loading...' }) => (
+  <div className="flex flex-col items-center justify-center py-12 animate-fade-in">
+    <Loader2 className="w-12 h-12 text-amber-400 animate-spin mb-4" />
+    <p className="text-amber-200 text-sm font-medium">{message}</p>
   </div>
 );
 
@@ -118,6 +135,12 @@ const StarButton = ({ content, type, metadata, onStarred }) => {
       setIsStarred(true);
       setShowTooltip(true);
       setTimeout(() => setShowTooltip(false), 2000);
+      
+      // Track export action (starred = saved for future use)
+      const platform = metadata?.platform || null;
+      const product = metadata?.product || null;
+      trackAnalytics('starred', content, type, platform, product);
+      
       if (onStarred) onStarred();
     }
   };
@@ -164,9 +187,10 @@ const EmptyState = ({ icon, title, description }) => (
 // Dashboard - The Command Center
 const PageDashboard = ({ onNavigate, onProductSelect }) => {
   const [streak, setStreak] = useState(0);
-  const [productOfDay, setProductOfDay] = useState('');
+  const [focusProduct, setFocusProduct] = useState(null);
   const [recentDrafts, setRecentDrafts] = useState([]);
   const [activeLibraryTab, setActiveLibraryTab] = useState('history');
+  const [isLibraryExpanded, setIsLibraryExpanded] = useState(true);
   
   // Modal states
   const [showPinModal, setShowPinModal] = useState(false);
@@ -186,9 +210,12 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
     const currentStreak = calculateStreak();
     setStreak(currentStreak);
 
-    // Get product of the day
-    const product = getProductOfDay();
-    setProductOfDay(product);
+    // Get focus product (lowest count/neglected product)
+    const productData = getProductAttention('month');
+    const neglectedProduct = productData.neglectedProducts && productData.neglectedProducts.length > 0 
+      ? productData.neglectedProducts[0] 
+      : null;
+    setFocusProduct(neglectedProduct);
 
     // Load recent drafts
     const drafts = getRecentDrafts();
@@ -196,9 +223,11 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
   }, []);
 
   const handleProductSpotlight = () => {
-    // Pre-select the product and navigate to Daily Inspiration
-    onProductSelect(productOfDay);
-    onNavigate('inspiration');
+    if (focusProduct) {
+      // Pre-select the product and navigate to Daily Inspiration
+      onProductSelect(focusProduct.name);
+      onNavigate('inspiration');
+    }
   };
 
   // Pin Competitor handlers
@@ -220,7 +249,7 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
       setPinUrl('');
       setPinNotes('');
       setShowPinModal(false);
-      alert('✓ Clipped! Load it from the Transform page or Remix Library.');
+      alert('✓ Clipped! Load it from the Transform page or Library.');
     } else {
       alert('Failed to save clip. Check console for errors.');
     }
@@ -291,14 +320,25 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
     onNavigate('translator', { preFilledText: favorite.content });
   };
 
-  const handleCopyDraft = async (content) => {
-    await copyToClipboard(content);
+  const handleCopyDraft = async (content, draft) => {
+    const success = await copyToClipboard(content);
+    if (success) {
+      // Track export action - try to extract platform/product from metadata
+      const platform = draft?.metadata?.platform || null;
+      const product = draft?.metadata?.product || null;
+      trackAnalytics('copied', content, draft?.type || 'Unknown', platform, product);
+    }
+  };
+
+  const handleBoostProduct = (productName) => {
+    onProductSelect(productName);
+    onNavigate('inspiration');
   };
 
   return (
     <div className="text-amber-50">
       {/* Welcome Header */}
-      <div className="mb-6">
+      <div className="mb-6 max-w-prose">
         <h2 className="text-3xl font-bold text-amber-400 mb-2">Welcome Back!</h2>
         <p className="text-amber-100 text-sm">
           Your Command Center for consistent, on-brand content creation.
@@ -348,7 +388,7 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
             <p className="text-amber-100 text-sm font-medium">
               {streak === 1 ? 'Day' : 'Days'} in a Row
             </p>
-            <p className="text-amber-200/70 text-xs mt-2">
+            <p className="text-amber-200/70 text-xs mt-2 max-w-prose mx-auto">
               {streak >= 7 
                 ? "Amazing! You're crushing your consistency goals! 🎉" 
                 : "Keep the momentum going! Consistency builds brands."}
@@ -356,35 +396,64 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
           </div>
         </div>
 
-        {/* Section 2: Product Spotlight */}
+        {/* Section 2: Focus Recommendation */}
         <div className="p-6 bg-zinc-900 rounded-lg border border-amber-900/40 hover:border-amber-500/60 transition-all duration-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-amber-300">Today's Spotlight</h3>
-            <Sparkles className="w-10 h-10 text-amber-400" />
+            <h3 className="text-lg font-semibold text-amber-300">Focus Recommendation</h3>
+            <TrendingDown className="w-10 h-10 text-amber-400" />
           </div>
-          <div className="mb-4">
-            <p className="text-amber-100 text-sm mb-2">Feature this product today:</p>
-            <p className="text-amber-400 font-bold text-2xl leading-tight">
-              {productOfDay.replace('RockMa Better Body Butter - ', '').replace('RockMa Lips Organics - Fab 5 Flavor Boxes: ', '').replace('RockMa ', '')}
-            </p>
-          </div>
-          <button
-            onClick={handleProductSpotlight}
-            className="w-full py-3 px-4 bg-amber-400 text-gray-900 rounded-lg font-semibold text-sm hover:bg-amber-500 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-amber-400/50 flex items-center justify-center gap-2"
-            aria-label={`Generate content ideas for ${productOfDay}`}
-          >
-            <Sparkles className="w-4 h-4" />
-            Generate Ideas for This
-          </button>
+          {focusProduct ? (
+            <>
+              <div className="mb-4">
+                <p className="text-amber-100 text-sm mb-2">
+                  Neglected: {focusProduct.count} {focusProduct.count === 1 ? 'post' : 'posts'} this month
+                </p>
+                <p className="text-amber-400 font-bold text-2xl leading-tight max-w-prose mx-auto">
+                  {focusProduct.name.replace('RockMa Better Body Butter - ', '').replace('RockMa Lips Organics - Fab 5 Flavor Boxes: ', '').replace('RockMa ', '')}
+                </p>
+              </div>
+              <button
+                onClick={handleProductSpotlight}
+                className="w-full max-w-xs mx-auto py-3 px-4 bg-amber-400 text-gray-900 rounded-lg font-semibold text-sm hover:bg-amber-500 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-amber-400/50 flex items-center justify-center gap-2"
+                aria-label={`Boost ${focusProduct.name}`}
+              >
+                <Sparkles className="w-4 h-4" />
+                Boost {focusProduct.name.replace('RockMa Better Body Butter - ', '').replace('RockMa Lips Organics - Fab 5 Flavor Boxes: ', '').replace('RockMa ', '')}
+              </button>
+            </>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-amber-200/60 text-sm">No product data yet</p>
+              <p className="text-amber-200/40 text-xs mt-1">Generate content to see recommendations</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Section 3: Remix Library */}
+      {/* Strategy Dashboard / Business Insights */}
+      <StrategyDashboard onBoostProduct={handleBoostProduct} />
+
+      {/* Section 3: Library */}
       <div className="p-6 bg-zinc-900 rounded-lg border border-amber-900/40">
-        <h3 className="text-lg font-semibold text-amber-300 mb-4">Remix Library</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-amber-300">Library</h3>
+          <button
+            onClick={() => setIsLibraryExpanded(!isLibraryExpanded)}
+            className="p-1 text-amber-400 hover:text-amber-300 transition-colors"
+            aria-label={isLibraryExpanded ? 'Collapse library' : 'Expand library'}
+          >
+            {isLibraryExpanded ? (
+              <ChevronUp className="w-5 h-5" />
+            ) : (
+              <ChevronDown className="w-5 h-5" />
+            )}
+          </button>
+        </div>
         
-        {/* Tab Buttons */}
-        <div className="flex gap-2 mb-4 border-b border-amber-900/40">
+        {isLibraryExpanded && (
+          <>
+            {/* Tab Buttons */}
+            <div className="flex gap-2 mb-4 border-b border-amber-900/40">
           <button
             onClick={() => setActiveLibraryTab('history')}
             className={`px-4 py-2 text-sm font-semibold transition-all duration-200 ${
@@ -456,7 +525,7 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
                           }}
                         />
                         <button
-                          onClick={() => handleCopyDraft(draft.content)}
+                          onClick={() => handleCopyDraft(draft.content, draft)}
                           className="flex-shrink-0 p-2 bg-zinc-700 hover:bg-zinc-600 text-amber-100 rounded transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-400/50"
                           aria-label={`Copy ${draft.type} content`}
                           title="Copy to clipboard"
@@ -612,6 +681,8 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
             )}
           </div>
         )}
+          </>
+        )}
       </div>
 
       {/* Clip Idea Modal */}
@@ -712,13 +783,20 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
       <Modal isOpen={showBrainDumpModal} onClose={() => setShowBrainDumpModal(false)} title="Brain Dump">
         <div className="space-y-4">
           <p className="text-gray-300 text-sm">Capture your raw thoughts and ideas.</p>
-          <textarea
-            value={brainDumpText}
-            onChange={(e) => setBrainDumpText(e.target.value)}
-            placeholder="What's on your mind? Type or click the mic to speak..."
-            className="w-full px-4 py-3 bg-zinc-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-400 min-h-[200px]"
-            autoFocus
-          />
+          <div>
+            <label htmlFor="brain-dump-text" className="block text-sm font-medium text-amber-100 mb-2">
+              Your Ideas
+            </label>
+            <textarea
+              id="brain-dump-text"
+              name="brain-dump-text"
+              value={brainDumpText}
+              onChange={(e) => setBrainDumpText(e.target.value)}
+              placeholder="What's on your mind? Type or click the mic to speak..."
+              className="w-full px-4 py-3 bg-zinc-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-400 min-h-[200px]"
+              autoFocus
+            />
+          </div>
           <div className="flex gap-3 justify-between">
             <button
               onClick={handleStartRecording}
@@ -800,12 +878,31 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
   const [product, setProduct] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState('');
 
+  // Load persisted session on mount
+  useEffect(() => {
+    const savedSession = getDailyInspirationSession();
+    if (savedSession && savedSession.ideas && savedSession.ideas.length > 0) {
+      setIdeas(savedSession.ideas);
+      setProduct(savedSession.product);
+      if (savedSession.selectedProduct) {
+        setSelectedProduct(savedSession.selectedProduct);
+      }
+    }
+  }, []);
+
   // Set selected product from Dashboard Product Spotlight
   useEffect(() => {
     if (preSelectedProduct) {
       setSelectedProduct(preSelectedProduct);
     }
   }, [preSelectedProduct]);
+
+  // Save session when selectedProduct changes (if we have ideas)
+  useEffect(() => {
+    if (ideas.length > 0) {
+      saveDailyInspirationSession(ideas, product, selectedProduct);
+    }
+  }, [selectedProduct]);
 
   // Product inventory for dropdown (matches backend)
   const productInventory = {
@@ -841,6 +938,9 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
         setIdeas(response.ideas);
         setProduct(response.product || null);
         
+        // Save session state
+        saveDailyInspirationSession(response.ideas, response.product || null, selectedProduct);
+        
         // Save each idea to recent drafts
         response.ideas.forEach((idea) => {
           const content = `${idea.hook}\n\n${idea.script}\n\n${idea.hashtags}`;
@@ -862,7 +962,17 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
     if (success) {
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 2000);
+      // Track export action
+      trackAnalytics('copied', fullText, 'Daily Idea', null, product);
     }
+  };
+
+  const handleReset = () => {
+    setIdeas([]);
+    setProduct(null);
+    setError(null);
+    setCopiedIndex(null);
+    clearDailyInspirationSession();
   };
 
   return (
@@ -899,19 +1009,31 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
         </select>
       </div>
 
-      <button
-        onClick={handleGenerate}
-        disabled={loading}
-        aria-label="Generate daily content ideas for RockMa products"
-        aria-busy={loading}
-        className={`w-full py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-amber-400/50 ${
-          loading
-            ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-            : 'bg-amber-400 text-gray-900 hover:bg-amber-500'
-        }`}
-      >
-        {loading ? 'Generating Ideas...' : 'Get My Daily Ideas'}
-      </button>
+      <div className="flex gap-3">
+        <button
+          onClick={handleGenerate}
+          disabled={loading}
+          aria-label="Generate daily content ideas for RockMa products"
+          aria-busy={loading}
+          className={`flex-1 py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-amber-400/50 ${
+            loading
+              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              : 'bg-amber-400 text-gray-900 hover:bg-amber-500'
+          }`}
+        >
+          {loading ? 'Generating Ideas...' : 'Get My Daily Ideas'}
+        </button>
+        {ideas.length > 0 && (
+          <button
+            onClick={handleReset}
+            disabled={loading}
+            aria-label="Reset and clear all generated ideas"
+            className="py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 bg-zinc-800 text-amber-100 hover:bg-zinc-700 disabled:opacity-50 focus:outline-none focus:ring-4 focus:ring-amber-500/50 border border-amber-900/30"
+          >
+            Reset
+          </button>
+        )}
+      </div>
 
       {error && (
         <div 
@@ -924,11 +1046,14 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
       )}
 
       {loading && (
-        <div className="mt-6 space-y-4">
-          <div className="h-6 w-40 bg-zinc-800 rounded animate-skeleton mb-4"></div>
-          <SkeletonIdea />
-          <SkeletonIdea />
-          <SkeletonIdea />
+        <div className="mt-6">
+          <LoadingSpinner message="Generating your daily ideas..." />
+          <div className="mt-6 space-y-4">
+            <div className="h-6 w-40 bg-zinc-800 rounded animate-skeleton mb-4"></div>
+            <SkeletonIdea />
+            <SkeletonIdea />
+            <SkeletonIdea />
+          </div>
         </div>
       )}
 
@@ -992,6 +1117,13 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
           ))}
         </div>
       )}
+
+      {/* Platform Quick Access */}
+      {ideas.length > 0 && (
+        <PlatformQuickAccess 
+          content={ideas[0] ? `${ideas[0].hook}\n\n${ideas[0].script}\n\n${ideas[0].hashtags}` : ''} 
+        />
+      )}
     </div>
   );
 };
@@ -999,7 +1131,6 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
 // Content Transformer Component (Unified: Adapt + Translate)
 const PageContentTransformer = ({ preFilledText = '', preFilledIdeaId = '' }) => {
   const [sourceText, setSourceText] = useState('');
-  const [transformGoal, setTransformGoal] = useState('rewrite_competitor');
   const [platform, setPlatform] = useState('TikTok');
   const [audience, setAudience] = useState('Core Moms 25-50');
   const [transformedContent, setTransformedContent] = useState('');
@@ -1025,16 +1156,16 @@ const PageContentTransformer = ({ preFilledText = '', preFilledIdeaId = '' }) =>
     setSourceText(clip.text);
     setSourceUrl(clip.url || '');
     
-    // Map intent to transformation goal (The Flexible Choice Strategy)
-    const intentMap = {
-      'format_linkedin_sales': 'format_linkedin',
-      'format_email_newsletter': 'format_email',
-      'format_tiktok_visual': 'format_tiktok',
-      'general_rewrite': 'rewrite_competitor'
+    // Map intent to platform
+    const platformMap = {
+      'format_linkedin_sales': 'LinkedIn',
+      'format_email_newsletter': 'Email',
+      'format_tiktok_visual': 'TikTok'
     };
     
-    const mappedGoal = intentMap[clip.intent] || 'rewrite_competitor';
-    setTransformGoal(mappedGoal);
+    if (platformMap[clip.intent]) {
+      setPlatform(platformMap[clip.intent]);
+    }
     
     setLoadedFromClip(true);
     setTimeout(() => setLoadedFromClip(false), 3000); // Auto-dismiss banner after 3s
@@ -1062,35 +1193,16 @@ const PageContentTransformer = ({ preFilledText = '', preFilledIdeaId = '' }) =>
     setCopied(false);
 
     try {
-      let response;
-      let draftType;
-
-      if (transformGoal === 'rewrite_competitor') {
-        // Use Adapt Competitor API
-        response = await api.adaptCompetitor(sourceText);
-        draftType = 'Adaptation';
-        if (response.success && response.adaptedText) {
-          setTransformedContent(response.adaptedText);
-          saveRecentDraft(draftType, response.adaptedText);
-        }
+      // Always use Platform Translator API with selected platform and audience
+      const response = await api.translatePlatform(sourceText, platform, audience);
+      const draftType = 'Translation';
+      
+      if (response.success && response.translatedContent) {
+        setTransformedContent(response.translatedContent);
+        // Save session state
+        saveTransformSession(sourceText, response.translatedContent, platform, audience, sourceUrl);
+        saveRecentDraft(draftType, response.translatedContent, { platform, audience });
       } else {
-        // Use Platform Translator API for format goals
-        const platformMap = {
-          'format_tiktok': 'TikTok',
-          'format_linkedin': 'LinkedIn',
-          'format_email': 'Email'
-        };
-        const targetPlatform = platformMap[transformGoal] || platform;
-        
-        response = await api.translatePlatform(sourceText, targetPlatform, audience);
-        draftType = 'Translation';
-        if (response.success && response.translatedContent) {
-          setTransformedContent(response.translatedContent);
-          saveRecentDraft(draftType, response.translatedContent, { platform: targetPlatform, audience });
-        }
-      }
-
-      if (!response.success) {
         setError(response.message || 'Failed to transform content');
       }
     } catch (err) {
@@ -1106,6 +1218,8 @@ const PageContentTransformer = ({ preFilledText = '', preFilledIdeaId = '' }) =>
     if (success) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      // Track export action
+      trackAnalytics('copied', transformedContent, 'Translation', platform, null);
     }
   };
 
@@ -1114,7 +1228,19 @@ const PageContentTransformer = ({ preFilledText = '', preFilledIdeaId = '' }) =>
     setTransformedContent('');
     setError(null);
     setCopied(false);
+    setSourceUrl('');
+    clearTransformSession();
   };
+
+  // Save session when inputs change (debounced to avoid too many saves)
+  useEffect(() => {
+    if (sourceText || transformedContent) {
+      const timeoutId = setTimeout(() => {
+        saveTransformSession(sourceText, transformedContent, platform, audience, sourceUrl);
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [sourceText, transformedContent, platform, audience, sourceUrl]);
 
   return (
     <div className="text-amber-50">
@@ -1125,7 +1251,7 @@ const PageContentTransformer = ({ preFilledText = '', preFilledIdeaId = '' }) =>
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className={`space-y-4 ${platform === 'Email' && transformedContent ? 'pb-24' : ''}`}>
         {/* Load from Idea Clips Section */}
         {getRemixQueue().length > 0 && (
           <div className="p-4 bg-amber-900/10 border border-amber-500/30 rounded-lg">
@@ -1221,67 +1347,46 @@ const PageContentTransformer = ({ preFilledText = '', preFilledIdeaId = '' }) =>
           />
         </div>
 
-        {/* Transformation Goal Dropdown */}
-        <div>
-          <label htmlFor="transform-goal" className="block text-sm font-medium text-amber-100 mb-2">
-            What do you want to do?
-          </label>
-          <select
-            id="transform-goal"
-            value={transformGoal}
-            onChange={(e) => setTransformGoal(e.target.value)}
-            className="w-full p-3 bg-zinc-900 border border-amber-900/40 rounded-lg text-amber-50 focus:outline-none focus:ring-4 focus:ring-amber-400/50"
-            disabled={loading}
-          >
-            <option value="rewrite_competitor">Rewrite Competitor Content (Mama's Love Voice)</option>
-            <option value="format_tiktok">Format for TikTok (Visual Script)</option>
-            <option value="format_linkedin">Format for LinkedIn (Professional B2B)</option>
-            <option value="format_email">Format for Email (Newsletter)</option>
-          </select>
-        </div>
-
-        {/* Conditional Platform + Audience fields */}
-        {transformGoal !== 'rewrite_competitor' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="platform-select" className="block text-sm font-medium text-amber-100 mb-2">
-                Target Platform
-              </label>
-              <select
-                id="platform-select"
-                value={platform}
-                onChange={(e) => setPlatform(e.target.value)}
-                className="w-full p-3 bg-zinc-900 border border-amber-900/40 rounded-lg text-amber-50 focus:outline-none focus:ring-4 focus:ring-amber-400/50"
-                disabled={loading}
-              >
-                {platforms.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="audience-select" className="block text-sm font-medium text-amber-100 mb-2">
-                Target Audience
-              </label>
-              <select
-                id="audience-select"
-                value={audience}
-                onChange={(e) => setAudience(e.target.value)}
-                className="w-full p-3 bg-zinc-900 border border-amber-900/40 rounded-lg text-amber-50 focus:outline-none focus:ring-4 focus:ring-amber-400/50"
-                disabled={loading}
-              >
-                {audiences.map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </select>
-            </div>
+        {/* Platform + Audience fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="platform-select" className="block text-sm font-medium text-amber-100 mb-2">
+              Target Platform
+            </label>
+            <select
+              id="platform-select"
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value)}
+              className="w-full p-3 bg-zinc-900 border border-amber-900/40 rounded-lg text-amber-50 focus:outline-none focus:ring-4 focus:ring-amber-400/50"
+              disabled={loading}
+            >
+              {platforms.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
           </div>
-        )}
+
+          <div>
+            <label htmlFor="audience-select" className="block text-sm font-medium text-amber-100 mb-2">
+              Target Audience
+            </label>
+            <select
+              id="audience-select"
+              value={audience}
+              onChange={(e) => setAudience(e.target.value)}
+              className="w-full p-3 bg-zinc-900 border border-amber-900/40 rounded-lg text-amber-50 focus:outline-none focus:ring-4 focus:ring-amber-400/50"
+              disabled={loading}
+            >
+              {audiences.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         <div className="flex gap-3">
           <button
@@ -1320,9 +1425,12 @@ const PageContentTransformer = ({ preFilledText = '', preFilledIdeaId = '' }) =>
 
         {loading && (
           <div>
-            <div className="h-5 w-48 bg-zinc-800 rounded animate-skeleton mb-2"></div>
-            <div className="p-4 bg-zinc-900 border border-amber-900/40 rounded-lg">
-              <SkeletonText />
+            <LoadingSpinner message="Transforming your content..." />
+            <div className="mt-4">
+              <div className="h-5 w-48 bg-zinc-800 rounded animate-skeleton mb-2"></div>
+              <div className="p-4 bg-zinc-900 border border-amber-900/40 rounded-lg">
+                <SkeletonText />
+              </div>
             </div>
           </div>
         )}
@@ -1344,8 +1452,8 @@ const PageContentTransformer = ({ preFilledText = '', preFilledIdeaId = '' }) =>
               <div className="flex gap-2">
                 <StarButton 
                   content={transformedContent}
-                  type={transformGoal === 'rewrite_competitor' ? 'Adaptation' : 'Translation'}
-                  metadata={transformGoal !== 'rewrite_competitor' ? { platform, audience } : {}}
+                  type="Translation"
+                  metadata={{ platform, audience }}
                 />
                 <button
                   onClick={handleCopy}
@@ -1364,7 +1472,34 @@ const PageContentTransformer = ({ preFilledText = '', preFilledIdeaId = '' }) =>
             <div className="p-4 bg-zinc-900 border border-amber-900/40 rounded-lg transition-all duration-200 hover:border-amber-500/60 hover:shadow-lg hover:shadow-amber-500/10">
               <p className="text-amber-50 text-sm whitespace-pre-wrap">{transformedContent}</p>
             </div>
+
+            {/* Email Deep Link Buttons */}
+            {platform === 'Email' && transformedContent && (
+              <div className="flex gap-3 mt-3 mb-4 relative z-50">
+                <a
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent('RockMa Content')}&body=${encodeURIComponent(transformedContent)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-amber-400 text-amber-400 hover:bg-amber-400/10 transition-all duration-200 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50 bg-zinc-900"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Open Gmail
+                </a>
+                <a
+                  href={`mailto:?subject=${encodeURIComponent('RockMa Content')}&body=${encodeURIComponent(transformedContent)}`}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-amber-400 text-amber-400 hover:bg-amber-400/10 transition-all duration-200 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50 bg-zinc-900"
+                >
+                  <Mail className="w-4 h-4" />
+                  Open Mail App
+                </a>
+              </div>
+            )}
           </div>
+        )}
+
+        {/* Platform Quick Access */}
+        {transformedContent && (
+          <PlatformQuickAccess content={transformedContent} />
         )}
       </div>
     </div>
@@ -1693,7 +1828,7 @@ const SettingsDrawer = ({ isOpen, onClose }) => {
           {/* Section A: Seasonality Tuner */}
           <div className="mb-6">
             <label htmlFor="seasonality" className="block text-sm font-semibold text-amber-100 mb-2">
-              Holidays and Seasons
+              Seasonal Theme
             </label>
             <select
               id="seasonality"
@@ -1702,20 +1837,12 @@ const SettingsDrawer = ({ isOpen, onClose }) => {
               className="w-full p-3 bg-zinc-800 border border-amber-900/40 rounded-lg text-amber-50 focus:outline-none focus:ring-4 focus:ring-amber-400/50"
             >
               <option value="none">None</option>
-              <optgroup label="Holidays">
-                <option value="christmas">Christmas</option>
-                <option value="new_year">New Year</option>
-                <option value="easter">Easter</option>
-                <option value="mothers_day">Mother's Day</option>
-                <option value="fathers_day">Father's Day</option>
-              </optgroup>
-              <optgroup label="Seasons">
-                <option value="spring">Spring</option>
-                <option value="summer">Summer</option>
-                <option value="fall">Fall</option>
-                <option value="winter">Winter</option>
-                <option value="back_to_school">Back to School</option>
-              </optgroup>
+              <option value="christmas">Christmas</option>
+              <option value="new_year">New Year</option>
+              <option value="easter">Easter</option>
+              <option value="mothers_day">Mother's Day</option>
+              <option value="summer">Summer</option>
+              <option value="back_to_school">Back to School</option>
             </select>
           </div>
 
@@ -1901,7 +2028,7 @@ function App() {
         </a>
         
         {/* Main App Container */}
-        <div className="w-full max-w-3xl bg-zinc-900 rounded-xl shadow-2xl shadow-amber-500/10 border border-amber-900/40 overflow-hidden">
+        <div className="w-full max-w-3xl md:max-w-5xl lg:max-w-7xl bg-zinc-900 rounded-xl shadow-2xl shadow-amber-500/10 border border-amber-900/40 overflow-hidden">
         
         {/* Header Section */}
         <div className="relative text-center p-6 bg-zinc-900 border-b border-amber-900/40">
