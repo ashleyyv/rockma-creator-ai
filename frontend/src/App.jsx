@@ -13,6 +13,7 @@ import {
   getFavorites,
   deleteFavorite,
   isFavorited,
+  getFavoriteIdByContent,
   saveIdeaClip,
   getRemixQueue,
   deleteIdeaClip,
@@ -124,24 +125,42 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 const StarButton = ({ content, type, metadata, onStarred }) => {
   const [isStarred, setIsStarred] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipMessage, setTooltipMessage] = useState('');
 
   useEffect(() => {
     setIsStarred(isFavorited(content));
   }, [content]);
 
   const handleStar = async () => {
-    const success = saveFavorite(content, type, metadata);
-    if (success) {
-      setIsStarred(true);
-      setShowTooltip(true);
-      setTimeout(() => setShowTooltip(false), 2000);
-      
-      // Track export action (starred = saved for future use)
-      const platform = metadata?.platform || null;
-      const product = metadata?.product || null;
-      trackAnalytics('starred', content, type, platform, product);
-      
-      if (onStarred) onStarred();
+    if (isStarred) {
+      // Unstar: find and delete the favorite
+      const favoriteId = getFavoriteIdByContent(content);
+      if (favoriteId) {
+        const success = deleteFavorite(favoriteId);
+        if (success) {
+          setIsStarred(false);
+          setTooltipMessage('Removed from favorites');
+          setShowTooltip(true);
+          setTimeout(() => setShowTooltip(false), 2000);
+          if (onStarred) onStarred();
+        }
+      }
+    } else {
+      // Star: save the favorite
+      const success = saveFavorite(content, type, metadata);
+      if (success) {
+        setIsStarred(true);
+        setTooltipMessage('Added to favorites!');
+        setShowTooltip(true);
+        setTimeout(() => setShowTooltip(false), 2000);
+        
+        // Track export action (starred = saved for future use)
+        const platform = metadata?.platform || null;
+        const product = metadata?.product || null;
+        trackAnalytics('starred', content, type, platform, product);
+        
+        if (onStarred) onStarred();
+      }
     }
   };
 
@@ -149,19 +168,19 @@ const StarButton = ({ content, type, metadata, onStarred }) => {
     <div className="relative inline-block">
       <button
         onClick={handleStar}
-        disabled={isStarred}
         className={`p-2 rounded transition-colors ${
           isStarred 
-            ? 'text-amber-400 cursor-default' 
+            ? 'text-amber-400 hover:text-amber-300' 
             : 'text-gray-400 hover:text-amber-400'
         }`}
-        aria-label={isStarred ? 'Already starred' : 'Star this content'}
+        aria-label={isStarred ? 'Unstar this content' : 'Star this content'}
+        title={isStarred ? 'Click to remove from favorites' : 'Click to add to favorites'}
       >
         {isStarred ? '⭐' : '☆'}
       </button>
       {showTooltip && (
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 px-2 py-1 bg-amber-400 text-gray-900 text-xs rounded whitespace-nowrap animate-fade-in">
-          Added to favorites!
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 px-2 py-1 bg-amber-400 text-gray-900 text-xs rounded whitespace-nowrap animate-fade-in z-50">
+          {tooltipMessage}
         </div>
       )}
     </div>
@@ -1144,7 +1163,29 @@ const PageContentTransformer = ({ preFilledText = '', preFilledIdeaId = '' }) =>
   const platforms = ['TikTok', 'Instagram', 'Facebook Ad', 'Email', 'YouTube'];
   const audiences = ['Core Moms 25-50', 'Gen-Z', 'Wellness Enthusiasts', 'B2B'];
 
-  // Handle pre-filled text from Remix Favorite
+  // Load persisted session on mount (like Daily Inspiration)
+  useEffect(() => {
+    const savedSession = getTransformSession();
+    if (savedSession) {
+      if (savedSession.sourceText) {
+        setSourceText(savedSession.sourceText);
+      }
+      if (savedSession.transformedContent) {
+        setTransformedContent(savedSession.transformedContent);
+      }
+      if (savedSession.platform) {
+        setPlatform(savedSession.platform);
+      }
+      if (savedSession.audience) {
+        setAudience(savedSession.audience);
+      }
+      if (savedSession.sourceUrl) {
+        setSourceUrl(savedSession.sourceUrl);
+      }
+    }
+  }, []);
+
+  // Handle pre-filled text from Remix Favorite (overrides saved session)
   useEffect(() => {
     if (preFilledText) {
       setSourceText(preFilledText);

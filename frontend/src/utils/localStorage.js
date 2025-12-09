@@ -251,6 +251,17 @@ export function isFavorited(content) {
   return favorites.some(fav => fav.content === content);
 }
 
+/**
+ * Get favorite ID by content (for deletion)
+ * @param {string} content - The content text to find
+ * @returns {string|null} The favorite ID or null if not found
+ */
+export function getFavoriteIdByContent(content) {
+  const favorites = getFavorites();
+  const favorite = favorites.find(fav => fav.content === content);
+  return favorite ? favorite.id : null;
+}
+
 // ========================================
 // REMIX QUEUE (IDEA CLIPPER) FUNCTIONS
 // ========================================
