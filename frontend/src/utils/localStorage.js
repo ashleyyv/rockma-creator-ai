@@ -576,14 +576,9 @@ export function getPlatformDistribution(timeframe = 'month') {
       entry.action === 'copied' && entry.platform
     );
 
-    // If no real data, return mock data for demonstration
+    // Return empty array if no data exists
     if (platformEntries.length === 0) {
-      return [
-        { name: 'TikTok', value: 12, percentage: 40 },
-        { name: 'Instagram', value: 8, percentage: 27 },
-        { name: 'Email', value: 6, percentage: 20 },
-        { name: 'LinkedIn', value: 4, percentage: 13 },
-      ];
+      return [];
     }
 
     // Count occurrences of each platform
@@ -621,19 +616,11 @@ export function getProductAttention(timeframe = 'month') {
     // Filter entries that have product data and were exported (copied or starred)
     const productEntries = data.filter(entry => entry.product && entry.action);
 
-    // If no real data, return mock data for demonstration
+    // Return empty arrays if no data exists
     if (productEntries.length === 0) {
       return {
-        topProducts: [
-          { name: 'RockMa Better Body Butter - Vanilla Cream', count: 15 },
-          { name: 'RockMa Better Body Butter - Cherry Kiss', count: 12 },
-          { name: 'RockMa Lips Organics - Fab 5 Flavor Boxes: Happy', count: 10 },
-        ],
-        neglectedProducts: [
-          { name: 'RockMa Beautiful Accents', count: 0 },
-          { name: 'RockMa Aesthetic Apparel', count: 1 },
-          { name: 'RockMa Better Body Butter - Almondina', count: 2 },
-        ],
+        topProducts: [],
+        neglectedProducts: [],
       };
     }
 
@@ -704,11 +691,7 @@ export function calculateCreativeOutput(timeframe = 'month') {
       }
     });
 
-    // If no real data, return mock number for demonstration
-    if (uniqueAssets.size === 0) {
-      return 30; // Mock creative output count
-    }
-
+    // Return 0 if no data exists
     return uniqueAssets.size;
   } catch (error) {
     console.error('Error calculating creative output:', error);
@@ -807,17 +790,7 @@ export function getActivityDataByTimeframe(timeframe = 'month') {
       }
     });
 
-    // If no real data, return mock activity data
-    const hasRealData = activityEntries.length > 0;
-    if (!hasRealData) {
-      // Mock data: varying activity across the week
-      const mockCounts = [3, 5, 2, 7, 4, 6, 3];
-      return last7Days.map((day, index) => ({
-        ...day,
-        count: mockCounts[index] || 0
-      }));
-    }
-
+    // Return data with 0 counts if no real data exists
     return last7Days.map(day => ({
       ...day,
       count: dayCounts[day.date] || 0
@@ -855,17 +828,7 @@ export function getActivityDataByTimeframe(timeframe = 'month') {
         }
       });
 
-      // If no real data, return mock activity data
-      const hasRealData = activityEntries.length > 0;
-      if (!hasRealData) {
-        // Mock data: varying activity across the month
-        const mockCounts = [5, 8, 12, 7, 15, 10, 9];
-        return monthDays.map((day, index) => ({
-          ...day,
-          count: mockCounts[index] || 0
-        }));
-      }
-
+      // Return data with 0 counts if no real data exists
       return monthDays.map(day => ({
         ...day,
         count: dayCounts[day.date] || 0
@@ -895,21 +858,10 @@ export function getActivityDataByTimeframe(timeframe = 'month') {
         }
       });
 
-      // If no real data, return mock activity data
-      const hasRealData = activityEntries.length > 0;
-      if (!hasRealData) {
-        // Mock data: varying activity across 30 days
-        const mockCounts = [4, 6, 3, 8, 5, 7, 4, 9, 6, 5, 8, 7, 6, 10, 5];
-        const filteredDays = last30Days.filter((_, index) => index % 5 === 0 || index === last30Days.length - 1);
-        return filteredDays.map((day, index) => ({
-          ...day,
-          count: mockCounts[index] || 0
-        }));
-      }
-
       // Show every 5th day for readability (1, 6, 11, 16, 21, 26)
       const filteredDays = last30Days.filter((_, index) => index % 5 === 0 || index === last30Days.length - 1);
       
+      // Return data with 0 counts if no real data exists
       return filteredDays.map(day => ({
         ...day,
         count: dayCounts[day.date] || 0

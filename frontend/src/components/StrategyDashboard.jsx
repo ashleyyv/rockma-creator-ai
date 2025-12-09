@@ -272,21 +272,27 @@ const StrategyDashboard = ({ onBoostProduct }) => {
         <div className="bg-zinc-800/50 rounded-lg p-5 border border-amber-900/30 hover:border-amber-500/40 transition-all duration-200">
           <h4 className="text-sm font-semibold text-amber-300 mb-4">Creative Output</h4>
           
-          <div className="flex flex-col items-center justify-center py-4">
-            <Clock className="w-12 h-12 text-amber-400 mb-4" />
-            <div className="text-center max-w-prose mx-auto">
-              <div className="text-5xl font-bold text-amber-400 mb-2">
-                {creativeOutput}
-              </div>
-              <p className="text-amber-100 text-sm font-medium">
-                Asset{creativeOutput !== 1 ? 's' : ''} Exported
-              </p>
-              <p className="text-amber-200/60 text-xs mt-2">
-                {timeframeLabel[timeframe]}
-              </p>
+          {creativeOutput === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Clock className="w-12 h-12 text-amber-400/40 mb-3" />
+              <p className="text-amber-200/60 text-xs max-w-prose mx-auto">No assets exported yet</p>
+              <p className="text-amber-200/40 text-xs mt-1 max-w-prose mx-auto">Copy or star content to start tracking</p>
             </div>
-            
-            {creativeOutput > 0 && (
+          ) : (
+            <div className="flex flex-col items-center justify-center py-4">
+              <Clock className="w-12 h-12 text-amber-400 mb-4" />
+              <div className="text-center max-w-prose mx-auto">
+                <div className="text-5xl font-bold text-amber-400 mb-2">
+                  {creativeOutput}
+                </div>
+                <p className="text-amber-100 text-sm font-medium">
+                  Asset{creativeOutput !== 1 ? 's' : ''} Exported
+                </p>
+                <p className="text-amber-200/60 text-xs mt-2">
+                  {timeframeLabel[timeframe]}
+                </p>
+              </div>
+              
               <div className="mt-4 pt-4 border-t border-amber-900/30 w-full">
                 <p className="text-amber-200/70 text-xs text-center max-w-prose mx-auto">
                   {creativeOutput >= 20 
@@ -294,8 +300,8 @@ const StrategyDashboard = ({ onBoostProduct }) => {
                     : "Every export adds to your asset collection."}
                 </p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
       </div>
