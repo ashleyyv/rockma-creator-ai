@@ -293,7 +293,7 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
     }
   };
 
-  // Brain Dump handlers
+  // Vault handlers
   const handleBrainDump = () => {
     setShowBrainDumpModal(true);
   };
@@ -782,16 +782,16 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
 
       {/* Productivity Action Row - FAB Style */}
       <div className="mb-6 flex justify-center items-center gap-6">
-        {/* Brain Dump FAB */}
+        {/* Vault FAB */}
         <button
           onClick={handleBrainDump}
           className="flex flex-col items-center group"
-          aria-label="Quick brain dump or voice note"
+          aria-label="Quick vault or voice note"
         >
           <div className="w-16 h-16 bg-amber-400 hover:bg-amber-500 text-black rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-amber-400/50 shadow-lg hover:shadow-xl">
             <Mic className="w-8 h-8" />
           </div>
-          <span className="text-xs text-amber-100 mt-2 font-medium">Brain Dump</span>
+          <span className="text-xs text-amber-100 mt-2 font-medium">Vault</span>
         </button>
 
         {/* Clip Idea FAB */}
@@ -1313,8 +1313,8 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
         </div>
       </Modal>
 
-      {/* Brain Dump Modal */}
-      <Modal isOpen={showBrainDumpModal} onClose={() => setShowBrainDumpModal(false)} title="Brain Dump">
+      {/* Vault Modal */}
+      <Modal isOpen={showBrainDumpModal} onClose={() => setShowBrainDumpModal(false)} title="Vault">
         <div className="space-y-4">
           <p className="text-gray-300 text-sm">Capture your raw thoughts and ideas.</p>
           <div>
