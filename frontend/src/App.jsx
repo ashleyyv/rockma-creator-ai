@@ -2608,11 +2608,11 @@ function App() {
           </div>
           
           {/* RockMa Logo */}
-          <div className="mb-4 flex justify-center">
+          <div className="mb-6 flex justify-center">
             <img 
               src="/NewLogo.png" 
               alt="RockMa Logo" 
-              className="h-28 drop-shadow-[0_0_25px_rgba(251,191,36,0.5)] hover:drop-shadow-[0_0_35px_rgba(251,191,36,0.7)] transition-all duration-300"
+              className="h-48 w-auto drop-shadow-[0_0_25px_rgba(251,191,36,0.5)] hover:drop-shadow-[0_0_35px_rgba(251,191,36,0.7)] transition-all duration-300"
             />
           </div>
           
