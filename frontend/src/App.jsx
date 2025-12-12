@@ -300,11 +300,14 @@ const PageDashboard = ({ onNavigate, onProductSelect }) => {
 
   const handleSaveBrainDump = () => {
     if (!brainDumpText.trim()) return;
-    saveRecentDraft('Raw Idea', brainDumpText.trim());
-    setBrainDumpText('');
-    setShowBrainDumpModal(false);
-    // Refresh drafts
-    setRecentDrafts(getRecentDrafts());
+    const success = saveIdeaClip(brainDumpText.trim());
+    if (success) {
+      setBrainDumpText('');
+      setShowBrainDumpModal(false);
+      alert('✓ Saved to Idea Clips! You can find it in the Library.');
+    } else {
+      alert('Failed to save. Check console for errors.');
+    }
   };
 
   const handleStartRecording = () => {
@@ -1898,7 +1901,7 @@ const PageContentTransformer = ({ preFilledText = '', preFilledIdeaId = '' }) =>
             onChange={(e) => setSourceText(e.target.value)}
             placeholder="Paste text to transform..."
             aria-describedby={error ? "transform-error" : undefined}
-            className="w-full h-48 p-3 bg-zinc-900 border border-amber-900/40 rounded-lg text-amber-50 placeholder-neutral-500 focus:outline-none focus:ring-4 focus:ring-amber-400/50 resize-none"
+            className="w-full h-78 p-3 bg-zinc-900 border border-amber-900/40 rounded-lg text-amber-50 placeholder-neutral-500 focus:outline-none focus:ring-4 focus:ring-amber-400/50 resize-none"
             disabled={loading}
           />
         </div>
@@ -2608,11 +2611,11 @@ function App() {
           </div>
           
           {/* RockMa Logo */}
-          <div className="mb-6 flex justify-center">
+          <div className="mb-[4px] flex justify-center">
             <img 
-              src="/NewLogo.png" 
+              src="/MyNewLogo.png" 
               alt="RockMa Logo" 
-              className="h-48 w-auto drop-shadow-[0_0_25px_rgba(251,191,36,0.5)] hover:drop-shadow-[0_0_35px_rgba(251,191,36,0.7)] transition-all duration-300"
+              className="h-78 w-auto drop-shadow-[0_0_25px_rgba(251,191,36,0.5)] hover:drop-shadow-[0_0_35px_rgba(251,191,36,0.7)] transition-all duration-300"
             />
           </div>
           
