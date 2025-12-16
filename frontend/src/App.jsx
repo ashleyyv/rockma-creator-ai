@@ -1480,7 +1480,8 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
         
         // Save each idea to recent drafts
         response.ideas.forEach((idea) => {
-          const content = `${idea.hook}\n\n${idea.script}\n\n${idea.hashtags}`;
+          const caption = idea.caption || idea.script || '';
+          const content = `${idea.hook}\n\n${caption}\n\n${idea.hashtags}`;
           saveRecentDraft('Daily Idea', content, { product: response.product });
         });
       } else {
@@ -1494,7 +1495,8 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
   };
 
   const handleCopy = async (idea, index) => {
-    const fullText = `${idea.hook}\n\n${idea.script}\n\n${idea.hashtags}`;
+    const caption = idea.caption || idea.script || '';
+    const fullText = `${idea.hook}\n\n${caption}\n\n${idea.hashtags}`;
     const success = await copyToClipboard(fullText);
     if (success) {
       setCopiedIndex(index);
@@ -1517,7 +1519,7 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-amber-400 mb-2">Daily Inspiration</h2>
         <p className="text-amber-100 text-sm">
-          Get 3-5 unique content ideas with hooks, scripts, and hashtags for your RockMa products.
+          Get 3-5 unique content ideas with hooks, captions, and hashtags for your RockMa products.
         </p>
       </div>
 
@@ -1598,7 +1600,7 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
         <EmptyState
           icon={<Lightbulb className="w-16 h-16 text-amber-400 mx-auto" />}
           title="Ready to Create Magic?"
-          description="Click the button above to generate 3-5 unique content ideas featuring your RockMa products. Each idea includes a hook, script, and hashtags."
+          description="Click the button above to generate 3-5 unique content ideas featuring your RockMa products. Each idea includes a hook, caption, and hashtags."
         />
       )}
 
@@ -1624,8 +1626,8 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
                 <p className="text-amber-50 text-sm">{idea.hook}</p>
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-amber-500 mb-1">Script</h4>
-                <p className="text-amber-50 text-sm whitespace-pre-wrap">{idea.script}</p>
+                <h4 className="text-sm font-semibold text-amber-500 mb-1">Caption</h4>
+                <p className="text-amber-50 text-sm whitespace-pre-wrap">{idea.caption || idea.script}</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-amber-500 mb-1">Hashtags</h4>
@@ -1633,7 +1635,7 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
               </div>
               <div className="flex gap-2">
                 <StarButton 
-                  content={`${idea.hook}\n\n${idea.script}\n\n${idea.hashtags}`}
+                  content={`${idea.hook}\n\n${idea.caption || idea.script || ''}\n\n${idea.hashtags}`}
                   type="Daily Idea"
                   metadata={{ product }}
                 />
@@ -1658,7 +1660,7 @@ const PageDailyInspiration = ({ preSelectedProduct = '' }) => {
       {/* Platform Quick Access */}
       {ideas.length > 0 && (
         <PlatformQuickAccess 
-          content={ideas[0] ? `${ideas[0].hook}\n\n${ideas[0].script}\n\n${ideas[0].hashtags}` : ''} 
+          content={ideas[0] ? `${ideas[0].hook}\n\n${ideas[0].caption || ideas[0].script || ''}\n\n${ideas[0].hashtags}` : ''} 
         />
       )}
     </div>

@@ -1,6 +1,6 @@
 """
 Daily Inspiration API Routes
-Generates 3-5 unique content ideas with Hook, Script, Hashtags
+Generates 3-5 unique content ideas with Hook, Caption, Hashtags
 """
 from flask import Blueprint, request, jsonify
 from utils import generate_ai_content
@@ -24,7 +24,7 @@ def generate_ideas():
     """
     Generate 3-5 daily inspiration content ideas
     Accepts optional 'product' parameter in request body
-    Returns: { ideas: [{ hook, script, hashtags }], product: string }
+    Returns: { ideas: [{ hook, caption, hashtags }], product: string }
     """
     try:
         # Get product and settings from request body (optional)
@@ -61,16 +61,16 @@ def generate_ideas():
 
 For each idea, provide:
 1. HOOK: An attention-grabbing opening line (1-2 sentences)
-2. SCRIPT: The main content/body text (2-4 sentences)
+2. CAPTION: The post caption text that goes with the photo/video (2-4 sentences)
 3. HASHTAGS: 5-10 relevant hashtags
 
-Format your response as a JSON array where each object has "hook", "script", and "hashtags" fields.
+Format your response as a JSON array where each object has "hook", "caption", and "hashtags" fields.
 
 Example format:
 [
   {{
     "hook": "You know that feeling when your skin just drinks up moisture?",
-    "script": "That's what our {selected_product} does every single day. Made with love and the cleanest ingredients, because your skin deserves the best. No harsh chemicals, just pure nourishment.",
+    "caption": "That's what our {selected_product} does every single day. Made with love and the cleanest ingredients, because your skin deserves the best. No harsh chemicals, just pure nourishment.",
     "hashtags": "#CleanBeauty #OrganicSkincare #MomOwned #RockMa #SelfCare"
   }}
 ]
@@ -101,10 +101,12 @@ Make each idea unique, authentic, and aligned with the RockMa "Mama's Love" bran
             # Ensure each idea has required fields
             validated_ideas = []
             for idea in ideas:
-                if isinstance(idea, dict) and 'hook' in idea and 'script' in idea:
+                if isinstance(idea, dict) and 'hook' in idea and ('caption' in idea or 'script' in idea):
+                    # Support both 'caption' (new) and 'script' (legacy) for backward compatibility
+                    caption = idea.get('caption', idea.get('script', ''))
                     validated_ideas.append({
                         'hook': idea.get('hook', ''),
-                        'script': idea.get('script', ''),
+                        'caption': caption,
                         'hashtags': idea.get('hashtags', '')
                     })
             

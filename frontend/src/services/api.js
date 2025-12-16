@@ -86,7 +86,7 @@ export const api = {
   /**
    * Generate daily inspiration content
    * @param {string|null} selectedProduct - Optional product to generate ideas for (null for random)
-   * @returns {Promise<{ideas: Array<{hook: string, script: string, hashtags: string}>, product: string}>}
+   * @returns {Promise<{ideas: Array<{hook: string, caption: string, hashtags: string}>, product: string}>}
    */
   async generateDailyInspiration(selectedProduct = null) {
     const settings = getUserSettings();

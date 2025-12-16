@@ -1,10 +1,19 @@
-RockMa Creator AI - PRD (v3.1 FINAL - DEPLOYED)
+RockMa Creator AI - PRD (v3.3 - CURRENT BUILD)
 
 Project: RockMa
 Owner: Ashley Vigo
 Date: November 18, 2025 (Specification)
 Deployment Date: November 23, 2025
+Last Updated: December 2024
 Status: ✅ Live in Production
+
+**Recent Updates (v3.3):**
+- Unified "Adapt Competitor" and "Platform Translator" into single "Content Transformer" feature
+- Added comprehensive Library feature with three tabs (Recent History, Favorites, Idea Clips)
+- Added Settings Drawer with seasonal themes, content focus, and custom product management
+- Renamed "Brain Dump" feature to "Vault" for better brand alignment
+- Updated Vault to save voice notes and ideas directly to Idea Clips (Library) instead of Recent Drafts
+- Improved user workflow: Voice notes from Vault now appear in Idea Clips for easier access and transformation
 
 1. Company and Business Context
 
@@ -60,18 +69,34 @@ The Core Features:
 - Creation streak tracking for motivation
 - Product spotlight (daily randomized product suggestion)
 - Three productivity-focused Quick Actions
-- Recent drafts history
+- Library section with three tabs (Recent History, Favorites, Idea Clips)
 
 **Daily Inspiration**: An "Inventory-Aware" idea generator that produces 3-5 content ideas for specific products.
 
-**Adapt a Competitor**: A text-translator that rewrites competitor scripts into the RockMa voice with brand differentiation.
-
-**Platform Translator**: A repurposing tool to multiply one idea into multiple platform/audience formats.
+**Content Transformer**: A unified feature that handles both:
+- Rewriting competitor content in RockMa's voice with brand differentiation
+- Repurposing content for different platforms (TikTok, Instagram, Facebook Ad, Email, YouTube) and audiences (Core Moms 25-50, Gen-Z, Wellness Enthusiasts, B2B)
+- Loading content from Idea Clips for transformation
+- Single interface for all transformation needs
 
 **Quick Actions Suite** (Dashboard Productivity Tools):
-- **📌 Pin Competitor**: Save competitor content for later adaptation
-- **🎤 Brain Dump**: Capture raw ideas via text or voice (Web Speech API)
+- **📌 Pin Competitor**: Save competitor content for later transformation
+- **🎤 Vault**: Capture raw ideas via text or voice (Web Speech API) - saves to Idea Clips
 - **⭐ Remix Favorite**: Reuse starred high-performing content
+
+**Library**: Comprehensive content management system with three tabs:
+- **Recent History**: Last 3 generated content pieces (Daily Ideas, Translations)
+- **Favorites**: All starred content for easy access and remixing
+- **Idea Clips**: Voice notes from Vault, pinned competitor content, and other clipped ideas
+- Multi-select mode for bulk deletion
+- Click items to view full content
+- Load items directly into Transform feature
+
+**Settings Drawer**: Customization and configuration panel:
+- Seasonal Theme selector (Christmas, New Year, Easter, Mother's Day, Summer, Back to School)
+- Content Focus/Pillar selector (Support, Safety, Motivation, Behind the Brand, Product Education)
+- Custom Product Inventory Manager (add/remove custom products for Daily Inspiration)
+- Factory Reset option
 
 **Star/Favorite System**: Cross-feature content library that turns one-time wins into reusable templates.
 
@@ -131,7 +156,7 @@ Mitigation: Pivoted to "Content Creation Suite" (approved by Client & Managers).
 
 **Content Reusability**: Marie successfully remixes favorited content for multiple platforms.
 
-**Workflow Integration**: Quick Actions (Pin, Brain Dump, Remix) become part of Marie's natural content creation flow.
+**Workflow Integration**: Quick Actions (Pin, Vault, Remix) become part of Marie's natural content creation flow.
 
 **Security**: Zero unauthorized access to OpenAI API credits through simple but effective access code system.
 
@@ -173,6 +198,11 @@ User Journey 1: Home Dashboard (The Command Center)
 
 Context: After authentication, Marie lands on the Dashboard and needs to feel motivated and oriented immediately.
 
+[P0] Navigation Structure:
+- Three main navigation tabs: Dashboard, Daily Inspiration, Transform
+- Clean, accessible tab interface with gold accent colors
+- Responsive design for mobile and desktop
+
 [P0] Layout: A "Bento Grid" layout responsive for mobile and desktop with gold accent colors on dark background.
 
 [P0] Welcome Card: Displays greeting "Welcome Back! 👋" and the tagline "Your Command Center for consistent, on-brand content creation."
@@ -191,18 +221,19 @@ Context: After authentication, Marie lands on the Dashboard and needs to feel mo
 - Displays abbreviated product name (e.g., "Cherry Kiss" instead of full name)
 - "Generate Ideas for This" button navigates to Daily Inspiration with product pre-selected
 
-[P0] Quick Actions (NEW - Replaced Original Actions):
-- **📌 Pin Competitor**: Save competitor links/content for later adaptation
-- **🎤 Brain Dump**: Capture raw ideas quickly via text or voice input
+[P0] Quick Actions:
+- **📌 Pin Competitor**: Save competitor links/content for later transformation
+- **🎤 Vault**: Capture raw ideas quickly via text or voice input (saves to Idea Clips)
 - **⭐ Remix Favorite**: Reuse previously starred successful content
 - All buttons feature hover effects, gold borders, and accessibility compliance
 
-[P0] Recent Drafts: 
-- Shows last 3 generated content pieces
-- Displays type badge (Daily Idea, Adaptation, Translation, Raw Idea)
-- Shows timestamp and content snippet (first 50 characters)
-- One-click copy button for each draft
-- Empty state: "No drafts yet. Generate some content to see it here!"
+[P0] Library Section:
+- Collapsible section with three tabs: Recent History, Favorites, Idea Clips
+- Multi-select mode toggle for bulk operations
+- Click items to view full content in detail modal
+- Load items directly into Transform feature
+- Bulk delete functionality for selected items
+- See User Journey 9 for detailed Library functionality
 
 User Journey 2: Daily Content Ideation (Inventory-Aware)
 
@@ -216,27 +247,86 @@ Lips: Happy, Dreamy, Cozy, Sunny.
 
 Other: Aesthetic Apparel, Beautiful Accents.
 
-[P0] The AI generates 3 ideas that specifically reference the selected product's name and benefits.
+[P0] Custom Products: Products added via Settings Drawer also appear in the dropdown.
 
-User Journey 3: Competitive Content Adaptation
+[P0] The AI generates 3-5 ideas that specifically reference the selected product's name and benefits.
 
-Context: Marie wants to rewrite a competitor's script.
+[P0] Each idea includes:
+- Hook (attention-grabbing opening)
+- Script (full content body)
+- Hashtags (relevant tags for social media)
 
-[P0] User pastes text; AI rewrites it in the "Mama's Love" voice.
+[P0] Star/Favorite: Each idea card has a star button to save to Favorites.
 
-[P0] AI implicitly highlights RockMa's differentiators (Clean, US-Made, Mom-Owned) vs. the competitor.
+[P0] Copy to Clipboard: One-click copy button for each idea.
 
-User Journey 4: Content Repurposing
+[P0] Platform Quick Access: After generating ideas, quick access buttons appear to transform ideas for specific platforms.
 
-Context: Marie multiplies one idea for 5 platforms.
+User Journey 3: Content Transformer (Unified Feature)
 
-[P0] User inputs text and selects Platform (TikTok, IG, FB, Email, YouTube) and Audience (Core, Gen-Z, Wellness, B2B).
+Context: Marie needs to transform content - either rewrite competitor content in RockMa's voice OR repurpose existing content for different platforms/audiences. This unified feature handles both use cases.
 
-[P0] B2B Audience setting specifically uses her "Founder/Operator" bio data.
+[P0] Single Interface:
+- One "Transform" tab in main navigation
+- Unified interface handles both competitor adaptation and platform repurposing
+- Clear description: "Transform your content for any purpose - rewrite competitor content or format for different platforms."
 
-User Journey 5: Pin Competitor (Research Tool)
+[P0] Load from Idea Clips:
+- Dropdown selector appears if user has saved Idea Clips
+- Shows all clipped ideas with intent labels and dates
+- Selecting a clip auto-fills the source text area
+- Success banner confirms clip was loaded
+- User can edit loaded text before transforming
 
-Context: Marie is scrolling social media and finds inspiring competitor content but doesn't have time to adapt it right now.
+[P0] Source Content Input:
+- Large textarea for pasting content to transform
+- Placeholder: "Paste text to transform..."
+- Supports competitor content, existing RockMa content, or any text
+- Auto-saves session state to localStorage
+
+[P0] Transformation Intent Selection:
+- Dropdown for selecting transformation goal
+- Options include: General Rewrite, Format for LinkedIn, Format for Email, Format for TikTok, etc.
+- Intent influences how AI transforms the content
+
+[P0] Platform Selection:
+- Dropdown for target platform: TikTok, Instagram, Facebook Ad, Email, YouTube
+- Platform selection affects tone, length, and format of output
+
+[P0] Audience Selection:
+- Dropdown for target audience: Core Moms 25-50, Gen-Z, Wellness Enthusiasts, B2B
+- B2B Audience setting specifically uses "Founder/Operator" bio data
+- Audience selection affects messaging and language
+
+[P0] Transformation Process:
+- Click "Generate Transform" button
+- Loading spinner with message "Transforming your content..."
+- AI processes content based on selected intent, platform, and audience
+- Transformed content appears in output area
+
+[P0] Output Features:
+- Transformed content displayed in styled output box
+- Star button to save to Favorites
+- Copy to Clipboard button
+- For Email platform: Quick action buttons for Gmail and default email client
+- Success message on copy
+
+[P0] Session Persistence:
+- Source text, transformed content, platform, and audience saved to localStorage
+- Session restored on page reload
+- Clear session button available
+
+[P0] Save to Recent History:
+- Transformed content automatically saved to Recent History (Library)
+- Includes metadata: platform, audience, timestamp
+
+[P0] Empty State:
+- Helpful message when no content entered
+- Explains transformation capabilities
+
+User Journey 4: Pin Competitor (Research Tool)
+
+Context: Marie is scrolling social media and finds inspiring competitor content but doesn't have time to transform it right now.
 
 [P0] Quick Action Trigger:
 - User clicks "📌 Pin Competitor" button from Dashboard
@@ -246,23 +336,27 @@ Context: Marie is scrolling social media and finds inspiring competitor content 
 
 [P0] Save Process:
 - Large textarea input with placeholder: "Paste competitor link or text here..."
+- Transformation Intent dropdown (required): General Rewrite, Format for LinkedIn, Format for Email, Format for TikTok
+- Optional URL field for source reference
+- Optional Notes field for user context
 - User pastes URL or copies full text from competitor post
 - Auto-focus on textarea for immediate typing
-- Character limit: None (supports long-form content)
+- Character limit: Minimum 10 characters required
 - Cancel and "Save Pin" buttons at bottom
 
 [P0] Storage & Management:
-- Saved to localStorage as `rockma_competitorClips` array
-- Each clip includes: ID, full text, timestamp, snippet (first 50 chars)
-- Keeps last 10 pins (oldest automatically pruned)
+- Saved to localStorage as Idea Clip (Remix Queue)
+- Each clip includes: ID, full text, URL, intent, notes, timestamp, snippet (first 60 chars)
+- Keeps last 50 clips (oldest automatically pruned)
 - No server storage - purely client-side
 
-[P0] Usage in Adapt Competitor:
-- Navigate to "Adapt a Competitor" feature
-- New dropdown appears above textarea: "Load Pinned Clip (Optional)"
-- Dropdown shows snippet of each saved clip
+[P0] Usage in Content Transformer:
+- Navigate to "Transform" tab
+- "Load from Idea Clips" dropdown appears above textarea
+- Dropdown shows snippet of each saved clip with intent label and date
 - Selecting a clip auto-fills the main textarea
-- User can then adapt it with one click
+- Intent from clip may pre-select platform dropdown
+- User can then transform it with one click
 
 [P0] UX Polish:
 - ESC key closes modal
@@ -271,13 +365,13 @@ Context: Marie is scrolling social media and finds inspiring competitor content 
 - Loading/success states
 - Mobile-responsive design
 
-User Journey 6: Brain Dump (Ideation Tool)
+User Journey 5: Vault (Ideation Tool)
 
 Context: Marie has a fleeting idea or inspiration but it's not fully formed yet. She needs to capture it before it disappears.
 
 [P0] Quick Action Trigger:
-- User clicks "🎤 Brain Dump" button from Dashboard
-- Modal opens with title "🎤 Brain Dump"
+- User clicks "🎤 Vault" button from Dashboard
+- Modal opens with title "🎤 Vault"
 - Subtitle: "Capture your raw thoughts and ideas."
 
 [P0] Text Input Mode:
@@ -298,14 +392,16 @@ Context: Marie has a fleeting idea or inspiration but it's not fully formed yet.
 
 [P0] Save Process:
 - "Save Idea" button (disabled until text entered)
-- Content saved to localStorage as type: "Raw Idea"
-- Appears in Dashboard "Recent Drafts" section
+- Content saved to localStorage as Idea Clip (Remix Queue)
+- Appears in Library "Idea Clips" section
 - Saved with timestamp and snippet
+- Success message: "✓ Saved to Idea Clips! You can find it in the Library."
 
 [P0] Later Usage:
-- Raw ideas visible in Recent Drafts
-- User clicks "Copy" button
-- Pastes into Daily Inspiration or Platform Translator
+- Voice notes and ideas visible in Library "Idea Clips" tab
+- User can load clips from Idea Clips in Transform feature
+- User clicks "Copy" button from Library
+- Pastes into Daily Inspiration or Transform
 - AI refines the raw idea into polished content
 
 [P0] UX Polish:
@@ -315,18 +411,17 @@ Context: Marie has a fleeting idea or inspiration but it's not fully formed yet.
 - Mobile-responsive
 - Accessibility: ARIA labels, keyboard shortcuts
 
-User Journey 7: Remix Favorite (Asset Library)
+User Journey 6: Remix Favorite (Asset Library)
 
 Context: Marie generated a script that performed exceptionally well (high engagement, conversions). She wants to reuse the core hook for a different platform or angle.
 
 [P0] Starring Content:
 - Star icon (☆) appears next to Copy button on all generated outputs:
   - Daily Inspiration idea cards
-  - Adapted Competitor content
-  - Platform Translator results
+  - Content Transformer results
 - User clicks star: Icon fills (⭐) and shows tooltip "Added to favorites!"
 - Content saved to localStorage as `rockma_favorites` array
-- Includes: content text, type (Daily Idea/Adaptation/Translation), timestamp, metadata (platform, audience if applicable)
+- Includes: content text, type (Daily Idea/Translation), timestamp, metadata (platform, audience if applicable)
 - Keeps last 20 favorites
 
 [P0] Quick Action Trigger:
@@ -337,7 +432,7 @@ Context: Marie generated a script that performed exceptionally well (high engage
 [P0] Browse Favorites:
 - List view of all starred content (scrollable if >3)
 - Each card shows:
-  - Type badge (Daily Idea, Adaptation, Translation)
+  - Type badge (Daily Idea, Translation)
   - Content snippet (first 60 characters)
   - Delete button (hover to reveal)
 - Empty state: "No favorites yet. Star content from any feature to save it!"
@@ -345,11 +440,11 @@ Context: Marie generated a script that performed exceptionally well (high engage
 [P0] Remix Process:
 - User clicks on a favorite card
 - Modal closes
-- App navigates to Platform Translator tab
+- App navigates to Transform tab
 - Source text field auto-populated with favorited content
 - Platform and Audience dropdowns ready for selection
 - User selects new platform/audience
-- Clicks "Translate" to generate variation
+- Clicks "Generate Transform" to create variation
 
 [P0] Favorite Management:
 - Delete individual favorites (in modal or from starred items)
@@ -365,14 +460,13 @@ Context: Marie generated a script that performed exceptionally well (high engage
 - Mobile-responsive cards
 - Accessibility compliant
 
-User Journey 8: Star/Favorite System Integration
+User Journey 7: Star/Favorite System Integration
 
 Context: Cross-feature system that turns one-time wins into reusable assets.
 
 [P0] Star Icon Locations:
 - **Daily Inspiration**: Star icon on each of the 3-5 generated idea cards
-- **Adapt Competitor**: Star icon next to Copy button on adapted content output
-- **Platform Translator**: Star icon next to Copy button on translated content output
+- **Content Transformer**: Star icon next to Copy button on transformed content output
 
 [P0] Star Behavior:
 - Default state: Outlined star (☆) in gray
@@ -386,7 +480,7 @@ Context: Cross-feature system that turns one-time wins into reusable assets.
 {
   id: "timestamp",
   content: "full script text",
-  type: "Daily Idea" | "Adaptation" | "Translation",
+  type: "Daily Idea" | "Translation",
   metadata: { product: "Cherry Kiss", platform: "TikTok", audience: "Gen-Z" },
   timestamp: "ISO date string",
   snippet: "first 60 characters..."
@@ -399,7 +493,7 @@ Context: Cross-feature system that turns one-time wins into reusable assets.
 3. She stars it ⭐
 4. Next day: Opens Dashboard, clicks "⭐ Remix Favorite"
 5. Selects that script
-6. Translates it for Email → Core Moms audience
+6. Transforms it for Email → Core Moms audience
 7. AI adapts the hook for email format: "Subject: The Truth About Your Chapstick..."
 8. She copies and uses in newsletter
 9. Stars the email version too for future B2B pitch remix
@@ -409,6 +503,118 @@ Context: Cross-feature system that turns one-time wins into reusable assets.
 - Reduces ideation time (start from proven concepts)
 - Enables cross-platform multiplication of winning messages
 - Builds personal content library over time
+
+User Journey 8: Library (Content Management System)
+
+Context: Marie needs a centralized place to view, manage, and reuse all her generated content, favorites, and clipped ideas.
+
+[P0] Location:
+- Library section on Dashboard (collapsible)
+- Three tabs: Recent History, Favorites, Idea Clips
+- Expandable/collapsible with chevron icon
+
+[P0] Recent History Tab:
+- Shows last 3 generated content pieces
+- Displays type badge (Daily Idea, Translation)
+- Shows timestamp and content snippet (first 50 characters)
+- One-click copy button for each draft
+- Click item to view full content in detail modal
+- Star/unstar button to add/remove from Favorites
+- "Load in Transformer" button to send content to Transform tab
+- Empty state: "No drafts yet. Generate some content to see it here!"
+
+[P0] Favorites Tab:
+- Shows all starred content (up to 20)
+- Displays type badge, snippet, and timestamp
+- Click item to view full content in detail modal
+- Star button to remove from favorites
+- "Load in Transformer" button to send content to Transform tab
+- Delete button for individual items
+- Empty state: "No favorites yet. Star content from any feature to save it!"
+
+[P0] Idea Clips Tab:
+- Shows all clipped ideas (from Vault, Pin Competitor, etc.)
+- Displays intent label, snippet, and timestamp
+- Click item to view full content in detail modal
+- Star button to add to Favorites
+- "Load in Transformer" button to send content to Transform tab
+- Delete button for individual items
+- Empty state: "No idea clips yet. Use Vault or Pin Competitor to save ideas!"
+
+[P0] Multi-Select Mode:
+- Toggle button: "Select Multiple" / "Exit Select Mode"
+- Checkboxes appear on all items when enabled
+- Select multiple items across tabs
+- "Delete Selected" button appears when items are selected
+- Shows count of selected items
+- Bulk delete confirmation
+
+[P0] Detail Modal:
+- Opens when clicking any Library item
+- Shows full content text
+- Copy button
+- Star/unstar button
+- "Load in Transformer" button
+- Delete button
+- Close button or click outside to close
+
+[P0] Integration with Other Features:
+- Items from Library can be loaded into Transform feature
+- Favorites accessible via Remix Favorite quick action
+- Idea Clips accessible via Transform "Load from Idea Clips" dropdown
+- Seamless workflow between Library and content creation features
+
+User Journey 9: Settings Drawer
+
+Context: Marie wants to customize the AI's behavior, add custom products, and configure seasonal themes for her content.
+
+[P0] Access:
+- Settings button (gear icon) in top-right header
+- Opens slide-out drawer from right side
+- Backdrop overlay with blur effect
+- Close button (X) in header
+
+[P0] Seasonal Theme Selector:
+- Dropdown with options: None, Christmas, New Year, Easter, Mother's Day, Summer, Back to School
+- Affects AI content generation to include seasonal messaging
+- Saved to localStorage
+- Persists across sessions
+
+[P0] Content Focus/Pillar Selector:
+- Dropdown with options: Support, Safety, Motivation, Behind the Brand, Product Education
+- Influences the messaging angle in AI-generated content
+- Saved to localStorage
+- Persists across sessions
+
+[P0] Custom Product Inventory Manager:
+- Section title: "Product Inventory"
+- Description: "Add custom products to the inventory (used in Daily Inspiration)."
+- List of current custom products (if any)
+- Each product shows with delete button (trash icon)
+- Input field: "Add custom product..."
+- Plus button to add new product
+- Enter key also adds product
+- Custom products appear in Daily Inspiration product dropdown
+- Saved to localStorage
+- Persists across sessions
+
+[P0] Factory Reset:
+- Button at bottom of drawer: "Factory Reset"
+- Confirmation dialog: "Are you sure you want to reset all settings to default? This cannot be undone."
+- On confirm: Clears all settings from localStorage and reloads page
+- Resets: seasonality, pillar, custom products
+
+[P0] Auto-Save:
+- Settings automatically saved to localStorage on change
+- No explicit "Save" button needed
+- Settings applied immediately to content generation
+
+[P0] UX Polish:
+- ESC key closes drawer
+- Click backdrop to close
+- Smooth slide-in/out animation
+- Mobile-responsive drawer width
+- Accessible keyboard navigation
 
 ---
 
@@ -433,14 +639,23 @@ Context: Cross-feature system that turns one-time wins into reusable assets.
 **Access:** Protected by access code (`ACCESS_CODE` environment variable). Users must authenticate once per device; code is persisted in browser localStorage.
 
 **Features Implemented:**
-- ✅ Daily Inspiration (3-5 product-specific content ideas)
-- ✅ Adapt Competitor (rewrite competitor content in RockMa voice)
-- ✅ Platform Translator (repurpose content for different platforms/audiences)
-- ✅ Dashboard Command Center (streak tracking, product spotlight, recent drafts)
-- ✅ Quick Actions (Pin Competitor, Brain Dump with voice input, Remix Favorite)
+- ✅ Daily Inspiration (3-5 product-specific content ideas with hooks, scripts, hashtags)
+- ✅ Content Transformer (unified feature for competitor adaptation and platform repurposing)
+- ✅ Dashboard Command Center (streak tracking, product spotlight, Quick Actions, Library)
+- ✅ Library (three-tab content management: Recent History, Favorites, Idea Clips)
+- ✅ Quick Actions (Pin Competitor, Vault with voice input, Remix Favorite)
+- ✅ Vault (voice/text ideation tool - saves to Idea Clips)
+- ✅ Settings Drawer (seasonal themes, content focus, custom product management)
 - ✅ Star/Favorite system for reusing successful content
+- ✅ Multi-select and bulk operations in Library
+- ✅ Session persistence for Transform feature
 - ✅ Full accessibility compliance (WCAG 2.1 AA)
 - ✅ Mobile-responsive design
 - ✅ Production-ready authentication and security
+
+**Navigation Structure:**
+- Three main tabs: Dashboard, Daily Inspiration, Transform
+- All features accessible from Dashboard or main navigation
+- Unified Content Transformer replaces separate Adapt/Translate features
 
 **Next Phase:** Monitor usage, gather user feedback, and iterate based on Marie's content creation workflow.
