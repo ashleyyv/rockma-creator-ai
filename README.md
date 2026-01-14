@@ -1,245 +1,149 @@
 # RockMa Creator AI
 
+**Client:** RockMa (Marie Hoffman)
+**Developer:** Ashley Vigo
+**Version:** 3.3 (Production)
+
 An AI-powered content creation suite for RockMa, a mom & pop CPG business. This tool helps generate consistent, on-brand content using a custom-tuned "Mama's Love" AI persona.
 
 ## Features
 
 ### 🏠 Dashboard (Command Center)
-Your landing page featuring:
-- **Creation Streak** - Track consecutive days of content creation (gamification)
-- **Product Spotlight** - Daily product recommendation to eliminate decision fatigue
-- **Quick Actions** - One-click shortcuts to common workflows
-- **Recent Drafts** - Safety net showing your last 3 generated pieces of content
+Your centralized landing page featuring:
+* **Creation Streak:** Track consecutive days of content creation (gamification).
+* **Product Spotlight:** Daily product recommendation to eliminate decision fatigue.
+* **Quick Actions:** One-click shortcuts to common workflows.
+* **Recent Drafts:** Safety net showing your last 3 generated pieces of content.
 
 ### Content Creation Tools
-1. **Daily Inspiration** - Generate 3-5 unique content ideas with hooks, scripts, and hashtags for RockMa products (now with product selector for all 13 products)
-2. **Adapt a Competitor** - Rewrite competitor content in RockMa's brand voice
-3. **Platform Translator** - Repurpose content for different platforms (TikTok, Instagram, Facebook Ad, Email, YouTube) and audiences
+* **Daily Inspiration:** Generate 3-5 unique content ideas with hooks, scripts, and hashtags (includes selector for all 13 products).
+* **Adapt a Competitor:** Rewrite competitor content in RockMa's brand voice.
+* **Platform Translator:** Repurpose content for different platforms (TikTok, Instagram, Facebook, Email, YouTube) and audiences.
 
-## 🔐 Security Features
-
-### Access Code Protection
+### 🔐 Security Features: Access Code Protection
 The app is protected by a single shared access code to prevent unauthorized access and protect your OpenAI API credits.
 
-**How it works:**
-- **First-time setup:** Set your access code in `backend/.env` (default: `ROCKMA-LOVE-2025`)
-- **Login:** Enter the code once on each device - it's saved in your browser
-- **Logout:** Click the logout button in the top-right to clear the code
-- **Backend validation:** Every API request is validated on the server to protect your OpenAI credits
+* **Login:** Enter the code once on each device; it is saved in `localStorage`.
+* **Backend Validation:** Every API request is validated on the server.
+* **Security:** Unauthorized users cannot access AI features even if they bypass the frontend.
+* **Management:** Set code in `backend/.env` (Default: `ROCKMA-LOVE-2025`).
 
-**Changing the access code:**
-1. Update `ACCESS_CODE` in `backend/.env`
-2. Restart the backend server
-3. All users will need to re-enter the new code
-
-**Security notes:**
-- ✅ The code is validated on the backend with every API request
-- ✅ Unauthorized users cannot access AI features even if they bypass the frontend
-- ✅ The code is stored in localStorage (device-specific)
-- ✅ No admin panel needed - manage via environment variable
-- ⚠️ Never commit `.env` file to Git (it's protected by `.gitignore`)
+---
 
 ## Tech Stack
 
-- **Frontend**: React 19 + Vite + Tailwind CSS v4
-- **Backend**: Flask (Python) + OpenAI API
-- **AI**: OpenAI GPT-4o-mini (cost-efficient model)
+* **Frontend:** React + Vite + Tailwind CSS
+* **Backend:** Flask (Python) + OpenAI API
+* **AI Model:** OpenAI GPT-4o-mini (Cost-efficient)
+
+---
 
 ## Setup Instructions
 
 ### Prerequisites
+* Node.js (v18 or higher)
+* Python 3.8 or higher
+* OpenAI API key
 
-- Node.js (v18 or higher)
-- Python 3.8 or higher
-- OpenAI API key
+### 1. Backend Setup
 
-### Backend Setup
+Run the following commands to set up and start the Python backend:
 
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
+```bash
+# 1. Navigate to backend
+cd backend
 
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   # On Windows:
-   venv\Scripts\activate
-   # On Mac/Linux:
-   source venv/bin/activate
-   ```
+# 2. Create virtual environment (Windows)
+python -m venv venv
+venv\Scripts\activate
+# OR for Mac/Linux:
+# python3 -m venv venv
+# source venv/bin/activate
 
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+# 3. Install dependencies
+pip install -r requirements.txt
 
-4. **Configure your API key and access code:**
-   
-   Copy the `.env.example` file to create your `.env` file:
-   ```bash
-   # On Windows (PowerShell):
-   copy .env.example .env
-   
-   # On Mac/Linux:
-   cp .env.example .env
-   ```
-   
-   Then open `.env` in a text editor and configure:
-   ```env
-   OPENAI_API_KEY=sk-proj-your-actual-key-here
-   ACCESS_CODE=ROCKMA-LOVE-2025
-   FLASK_ENV=development
-   ```
-   
-   **📖 For detailed setup instructions, see:** [`backend/SETUP_INSTRUCTIONS.md`](backend/SETUP_INSTRUCTIONS.md)
-   
-   **🔑 Get your API key from:** https://platform.openai.com/api-keys
+# 4. Configure Environment Variables
+cp .env.example .env
+# NOTE: Open .env and add your OPENAI_API_KEY before running!
 
-5. Run the Flask server:
-   ```bash
-   python app.py
-   ```
-   The server will run on `http://localhost:5000`
-   
-6. **Test the backend** by visiting: http://localhost:5000/api/health
-   
-   You should see: `{"status": "healthy", "service": "RockMa Creator AI API"}`
+# 5. Run the Server
+python app.py
 
-### Frontend Setup
 
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
+### 2. Front End Set Up
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+# 1. Navigate to frontend
+cd frontend
 
-3. (Optional) Create a `.env` file if you need to customize the API URL:
-   ```env
-   VITE_API_BASE_URL=http://localhost:5000
-   ```
+# 2. Install dependencies
+npm install
 
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
-   The app will be available at `http://localhost:5173` (or the port Vite assigns)
+# 3. Run the development server
+npm run dev
 
-## Project Structure
+App will run on http://localhost:5173
 
-```
+
+Project Structure
+
 rockma-creator-ai/
 ├── backend/
 │   ├── app.py                    # Main Flask application
-│   ├── config.py                 # Configuration management
 │   ├── ai_persona.py             # RockMa brand voice and system prompts
 │   ├── utils.py                  # Shared AI utility functions
 │   ├── request_validators.py     # Request validation helpers
 │   ├── requirements.txt          # Python dependencies
-│   ├── .env.example              # Environment variables template
-│   ├── .env                      # Your API keys (not in Git)
-│   ├── SETUP_INSTRUCTIONS.md     # Detailed setup guide
-│   └── routes/
-│       ├── daily_inspiration.py
-│       ├── adapt_competitor.py
-│       └── platform_translator.py
+│   ├── .env                      # API keys (NOT in Git)
+│   └── routes/                   # API Route definitions
 ├── frontend/
 │   ├── src/
 │   │   ├── App.jsx               # Main React component
-│   │   ├── main.jsx              # React entry point
-│   │   ├── services/
-│   │   │   └── api.js             # API client
-│   │   └── utils/
-│   │       ├── constants.js      # API endpoints
-│   │       └── stateHelpers.js   # Utility functions
+│   │   ├── services/api.js       # API client
+│   │   └── utils/                # Constants and Helpers
 │   └── package.json
-├── .gitignore                    # Git ignore rules (protects .env)
 └── PRD.md                        # Product Requirements Document
-```
 
-## API Endpoints
 
-### Daily Inspiration
-- **POST** `/api/daily-inspiration/generate`
-  - Generates 3-5 content ideas
-  - Returns: `{ success: true, ideas: [{ hook, script, hashtags }], product: string }`
+API Endpoints
 
-### Adapt a Competitor
-- **POST** `/api/adapt-competitor/rewrite`
-  - Body: `{ competitorText: string }`
-  - Returns: `{ success: true, adaptedText: string }`
+Feature,Method,Endpoint,Description
+Daily Inspiration,POST,/api/daily-inspiration/generate,Generates 3-5 ideas based on product
+Adapt Competitor,POST,/api/adapt-competitor/rewrite,Rewrites external text in brand voice
+Platform Translator,POST,/api/platform-translator/translate,Reformats content for specific platforms
 
-### Platform Translator
-- **POST** `/api/platform-translator/translate`
-  - Body: `{ sourceText: string, platform: string, audience: string }`
-  - Returns: `{ success: true, translatedContent: string, platform: string, audience: string }`
 
-## 🚀 Deployment
-
+Deployment
 This app is designed for production deployment:
-- **Backend**: Render (Python/Flask)
-- **Frontend**: Vercel (React/Vite)
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+Backend: Render (Python/Flask)
 
-**Architecture:**
-- Backend API: Python Flask server with OpenAI integration
-- Frontend: React + Vite with Tailwind CSS
-- Authentication: Single shared access code system
-- Storage: localStorage for persistence (streak, drafts, favorites)
+Frontend: Vercel (React/Vite)
 
-**Live URLs (after deployment):**
-- Frontend: `https://your-app.vercel.app`
-- Backend API: `https://your-api.onrender.com`
+Live URLs:
 
----
+Frontend: https://rockma-content-ai.vercel.app
 
-## Brand Voice
+Backend API: https://rockma-creator-ai.onrender.com
 
-The AI persona is pre-configured with RockMa's "Mama's Love" brand voice:
-- **Mission**: To nurture our community by providing consistently clean goods... with a side of love and inspiration
-- **Voice**: Warm, caring, inspirational, and trustworthy
-- **Keywords**: Love, Joy, Hope, Peace, Nurture, Clean, Healthy, Community, Inspire
-- **Differentiators**: Mom-owned, clean production, ethically made in USA, USDA ORGANIC, Leaping Bunny certified
+See DEPLOYMENT.md for detailed instructions.
 
-## Product Inventory
+Brand Voice & Inventory
+The AI Persona:
 
-The AI is pre-loaded with RockMa's product inventory:
+Voice: Warm, caring, inspirational, "Mama's Love"
 
-**Body Butters (7 flavors):**
-- Vanilla Cream, Choco Love, Cherry Kiss, Coco Beach, Orange Crush, Almondina, Berry Patch
+Keywords: Love, Joy, Hope, Peace, Nurture, Clean
 
-**Lips Organics - Fab 5 Flavor Boxes (4 flavors):**
-- Happy, Dreamy, Cozy, Sunny
+Sign-off: "Made for you with Love"
 
-**Other Products:**
-- RockMa Aesthetic Apparel
-- RockMa Beautiful Accents
+Product Inventory (Pre-loaded):
 
-**Total: 13 products** available for content generation.
+Body Butters: Vanilla Cream, Choco Love, Cherry Kiss, Coco Beach, Orange Crush, Almondina, Berry Patch
 
-Users can select a specific product or let the AI randomly choose one for Daily Inspiration content ideas.
+Lips: Happy, Dreamy, Cozy, Sunny
 
-## Planned Features
+Other: Aesthetic Apparel, Beautiful Accents
 
-**Dashboard/Command Center** - A centralized hub with quick actions, creation streak tracking, product spotlight, and recent drafts history. Planned for future implementation as outlined in PRD v3.1.
-
-## Development Notes
-
-- The backend uses Flask blueprints for route organization
-- Error handling is implemented at both frontend and backend levels
-- All API responses follow a consistent `{ success: boolean, ... }` format
-- Copy-to-clipboard functionality is available for all generated content
-- The app is fully responsive for mobile and desktop
-
-## License
-
-This project is proprietary and confidential.
-
----
-*Last updated: December 2024*
-
+License
+This project is proprietary and confidential. Last updated: January 2026
